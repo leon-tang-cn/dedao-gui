@@ -10,8 +10,8 @@
         "dev": "node server.js",
         "prebuild": "npm run vue:build && npm run vue:resouce:delete && npm run vue:resouce:copy",
         "start": "npx electron .",
-        "dist:win": "npm run prebuild && electron-builder --windows",
-        "dist:mac": "npm run prebuild && electron-builder --mac"
+        "dist:win": "electron-builder --windows",
+        "dist:mac": "electron-builder --mac"
     },
     "author": "",
     "license": "ISC",
@@ -27,7 +27,7 @@
         "path": "^0.12.7",
         "puppeteer": "^24.7.2",
         "sqlite": "^5.1.1",
-        "sqlite3": "^5.1.7",
+        "sqlite3": "^5.1.6",
         "svg-parser": "^2.0.4"
     },
     "devDependencies": {
@@ -57,13 +57,23 @@
         },
         "files": [
             "main.js",
+            "preload.js",
+            "custom.js",
+            "cookie.js",
             "server.js",
             "services/*",
             "services/**/*",
             "assets/*",
             "favicon.ico",
             "index.html",
-            "log.html"
+            "log.html",
+            "notice.html"
+        ],
+        "extraResources": [
+            {
+                "from": "ddinfo.db",
+                "to": ".."
+            }
         ]
     }
 }
