@@ -74,7 +74,6 @@ const { Svg2Epub } = require('./svg2epub');
 
   ebookService.get('/getEbooks', async (req, res) => {
     const { pageSize, currentPage, sortStrategy, labelId, navigationId } = req.query;
-    console.log(pageSize, currentPage, sortStrategy)
     const db = await connectDb();
     try {
       if (!db) {
@@ -121,7 +120,6 @@ const { Svg2Epub } = require('./svg2epub');
 
   ebookService.get('/searchEbook', async (req, res) => {
     const { pageSize, currentPage, requestId, keyword } = req.query;
-    console.log(pageSize, currentPage, requestId, keyword)
     if (!keyword || keyword === '') {
       return res.json({ c: { data: { moduleList: [] } } });
     }
@@ -390,6 +388,44 @@ const { Svg2Epub } = require('./svg2epub');
       return []
     }
   }
+
+  ebookService.get('/getEbookOutline', async (req, res) => {
+    const { enid } = req.query;
+    const db = await connectDb();
+    try {
+      if (!db) {
+        res.status(500).send({ message: '无法连接到数据库' });
+      }
+
+      let result = await db.get(`SELECT * FROM login_info`);
+      if (!result || !result.csrfToken) {
+        return res.json({ data: { status: 0 } });
+      }
+
+      const bookDetailRes = await axios(`https://www.dedao.cn/pc/ebook2/v1/pc/detail?id=${enid}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          "xi-csrf-token": result.csrfToken,
+          'Cookie': result.cookies,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "sec-ch-ua-mobile": "?0"
+        }
+      })
+      const author = bookDetailRes.data.c.book_author;
+      const title = bookDetailRes.data.c.operating_title
+      const intro = bookDetailRes.data.c.book_intro;
+      return res.json({ data: { author, title, intro } });
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) {
+        return res.json({ error: 403, message: '令牌已过期，请重新登录' });
+      }
+      return res.json({ error: -2, message: error.statusText });
+    } finally {
+      await db.close()
+    }
+  });
 
   ebookService.get('/getEbookDetail', async (req, res) => {
     const { enid, eType } = req.query;

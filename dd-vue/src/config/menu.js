@@ -15,7 +15,8 @@ export function getMenus() {
       path: "/",
       meta: {
         menuName: "首页",
-        icon: "HomeFilled"
+        icon: "HomeFilled",
+        show: true
       }
     },
     {
@@ -24,7 +25,8 @@ export function getMenus() {
       path: "/ebooks",
       meta: {
         menuName: "电子书库",
-        icon: "models"
+        icon: "models",
+        show: true
       }
     },
     {
@@ -33,7 +35,30 @@ export function getMenus() {
       path: "/ebook",
       meta: {
         menuName: "我的书架",
-        icon: "models"
+        icon: "models",
+        show: true
+      }
+    },
+    {
+      id: 4,
+      name: "buttonAction",
+      path: "/buttonAction",
+      meta: {
+        menuName: "下载",
+        icon: "models",
+        show: false
+      }
+    },
+    {
+      id: 5,
+      name: "dedaoHome",
+      path: "/dedaoHome",
+      meta: {
+        menuName: "得到官网",
+        icon: "HomeFilled",
+        show: true,
+        electron: true,
+        windowName: 'ddwindow'
       }
     },
     {
@@ -42,7 +67,8 @@ export function getMenus() {
       path: "/config",
       meta: {
         menuName: "配置",
-        icon: "setting"
+        icon: "setting",
+        show: true
       }
     }
   ]

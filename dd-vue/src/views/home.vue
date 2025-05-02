@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <template v-if="logedIn == '0'">
+      <span>校验登陆信息...</span>
+    </template>
     <template v-if="logedIn == '1'">
       <el-button type="primary" @click="logout">Logout</el-button>
     </template>
@@ -53,14 +56,25 @@ const checkLogin = async () => {
   }, 1000);
 };
 
-onMounted(async () => {
-  const res = await sendRequest('/api/login/tryGetToken')
-  console.log(res)
-  if (res.status == 1) {
-    logedIn.value = '1';
-  } else {
-    logedIn.value = '2';
+const tryGetToken = async () => {
+  try {
+    const res = await sendRequest('/api/login/tryGetToken')
+    if (res.status == 1) {
+      logedIn.value = '1';
+    } else {
+      logedIn.value = '2';
+    }
+  } catch (error) {
+    setTimeout(async () => {
+      await tryGetToken();
+    }, 500);
   }
+}
+
+onMounted(async () => {
+  setTimeout(async () => {
+    await tryGetToken();
+  }, 500);
 })
 </script>
 

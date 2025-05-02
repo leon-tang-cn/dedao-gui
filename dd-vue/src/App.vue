@@ -6,7 +6,7 @@
         text-color="#fff" active-text-color="#66ccff">
         <template v-for="menuItem in menuData" :key="menuItem.name">
           <template v-if="menuItem.children && menuItem.children.length > 0">
-            <el-sub-menu :index="menuItem.name">
+            <el-sub-menu :index="menuItem.name" >
               <template #title>
                 <el-icon>
                   <HomeFilled v-if="menuItem.meta.icon === 'HomeFilled'" />
@@ -16,7 +16,7 @@
                 <span>{{ menuItem.meta.menuName }}</span>
               </template>
               <template v-for="child in menuItem.children" :key="child.path">
-                <el-menu-item :index="child.path" @click="handleMenuItemClick(child.path)">
+                <el-menu-item :index="child.path" v-if="child.meta.show" @click="handleMenuItemClick(child)">
                   <i class="el-icon-document"></i>
                   <span>{{ child.meta.menuName }}</span>
                 </el-menu-item>
@@ -24,7 +24,7 @@
             </el-sub-menu>
           </template>
           <template v-else>
-            <el-menu-item :index="menuItem.path" @click="handleMenuItemClick(menuItem.path)">
+            <el-menu-item :index="menuItem.path" v-if="menuItem.meta.show" @click="handleMenuItemClick(menuItem)">
               <el-icon>
                 <HomeFilled v-if="menuItem.meta.icon === 'HomeFilled'" />
                 <Menu v-else-if="menuItem.meta.icon === 'models'" />
@@ -64,8 +64,12 @@ const router = useRouter();
 const menuData = getMenus();
 const isCollapse = ref(false);
 
-const handleMenuItemClick = (path) => {
-  router.push(path);
+const handleMenuItemClick = (item) => {
+  if (item.meta.electron) {
+    window.electronAPI.sendMessage('open-window', item.meta.windowName);
+    return;
+  }
+  router.push(item.path);
 };
 
 const toggleSidebar = () => {
