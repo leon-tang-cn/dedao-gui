@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Log</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+
+        #log-container {
+            height: 290px;
+            overflow-y: auto;
+            border: none;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="log-container"></div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const logContainer = document.getElementById('log-container');
+
+        ipcRenderer.on('server-log', (event, logMessage) => {
+            const logEntry = document.createElement('p');
+            logEntry.textContent = logMessage;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        });
+    </script>
+</body>
+
+</html>
+    

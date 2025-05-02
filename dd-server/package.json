@@ -1,0 +1,68 @@
+{
+    "name": "dd-client",
+    "version": "1.0.0",
+    "description": "得到电子书",
+    "main": "main.js",
+    "scripts": {
+        "vue:build": "cd ../dd-vue && npm run build",
+        "vue:resouce:delete": "rd /s /q assets & del /q index.html log.html favicon.ico",
+        "vue:resouce:copy": "xcopy ..\\dd-vue\\dist .\\ /e /i /y",
+        "dev": "node server.js",
+        "prebuild": "npm run vue:build && npm run vue:resouce:delete && npm run vue:resouce:copy",
+        "start": "npx electron .",
+        "dist:win": "npm run prebuild && electron-builder --windows",
+        "dist:mac": "npm run prebuild && electron-builder --mac"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^1.9.0",
+        "child_process": "^1.0.2",
+        "crypto": "^1.0.1",
+        "epub-gen": "^0.1.0",
+        "express": "^4.18.2",
+        "fs-extra": "^11.3.0",
+        "html-escaper": "^3.0.3",
+        "path": "^0.12.7",
+        "puppeteer": "^24.7.2",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.7",
+        "svg-parser": "^2.0.4"
+    },
+    "devDependencies": {
+        "electron": "^26.2.3",
+        "electron-builder": "^23.6.0"
+    },
+    "build": {
+        "appId": "com.example.dd-client",
+        "productName": "得到电子书",
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "./icon.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "artifactName": "ddclient_installer.${ext}"
+        },
+        "mac": {
+            "target": [
+                "dmg",
+                "pkg"
+            ],
+            "category": "public.app-category.productivity"
+        },
+        "files": [
+            "main.js",
+            "server.js",
+            "services/*",
+            "services/**/*",
+            "assets/*",
+            "favicon.ico",
+            "index.html",
+            "log.html"
+        ]
+    }
+}
