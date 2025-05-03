@@ -8,7 +8,7 @@
           <el-radio-button label="最新" value="NEW" />
         </el-radio-group>
         <div style="flex: 1;display: flex;flex-flow: row nowrap;justify-content: flex-end;gap: 10px;">
-          <el-input v-model="searchKeyword" placeholder="请输入内容" style="width: 300px;">
+          <el-input v-model="searchKeyword" placeholder="请输入关键字搜索" style="width: 300px;">
             <template #append>
               <el-button :icon="Search" :loading="onSearchLoading" @click="searchBook" />
             </template>

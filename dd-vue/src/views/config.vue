@@ -1,6 +1,9 @@
 <template>
   <div class="container">
-    <el-input v-model="outputDir"></el-input>
+    <div class="config-item">
+      <span class="label">输出目录：</span>
+      <el-input v-model="outputDir" class="value"></el-input>
+    </div>
     <el-button type="primary" @click="updateConfig">提交</el-button>
   </div>
 </template>
@@ -17,7 +20,7 @@ const updateConfig = async () => {
 };
 onMounted(async () => {
   const res = await sendRequest('/api/config/getConfig')
-  outputDir.value = res.output_dir; 
+  outputDir.value = res.output_dir;
 })
 </script>
 
@@ -29,7 +32,22 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-flow: column nowrap;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 10px;
+}
+
+.config-item {
+  width: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 10px;
+}
+.config-item .label {
+  width: 120px;
+  text-align: right; 
+}
+.config-item .value {
+  flex: 1;
 }
 </style>

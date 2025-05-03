@@ -5,19 +5,19 @@
       <el-menu :default-active="$route.path" mode="vertical" :collapse="isCollapse" background-color="#2f4050"
         text-color="#fff" active-text-color="#66ccff">
         <template v-for="menuItem in menuData" :key="menuItem.name">
-          <template v-if="menuItem.children && menuItem.children.length > 0">
-            <el-sub-menu :index="menuItem.name" >
+          <template v-if="menuItem.children && menuItem.children.length > 0 && menuItem.meta.show">
+            <el-sub-menu :index="menuItem.name">
               <template #title>
                 <el-icon>
-                  <HomeFilled v-if="menuItem.meta.icon === 'HomeFilled'" />
-                  <Menu v-else-if="menuItem.meta.icon === 'models'" />
-                  <Setting v-else-if="menuItem.meta.icon === 'setting'" />
+                  <component :is="icons[menuItem.meta.icon]"></component>
                 </el-icon>
                 <span>{{ menuItem.meta.menuName }}</span>
               </template>
               <template v-for="child in menuItem.children" :key="child.path">
                 <el-menu-item :index="child.path" v-if="child.meta.show" @click="handleMenuItemClick(child)">
-                  <i class="el-icon-document"></i>
+                  <el-icon>
+                    <component :is="icons[child.meta.icon]"></component>
+                  </el-icon>
                   <span>{{ child.meta.menuName }}</span>
                 </el-menu-item>
               </template>
@@ -26,9 +26,7 @@
           <template v-else>
             <el-menu-item :index="menuItem.path" v-if="menuItem.meta.show" @click="handleMenuItemClick(menuItem)">
               <el-icon>
-                <HomeFilled v-if="menuItem.meta.icon === 'HomeFilled'" />
-                <Menu v-else-if="menuItem.meta.icon === 'models'" />
-                <Setting v-else-if="menuItem.meta.icon === 'setting'" />
+                <component :is="icons[menuItem.meta.icon]"></component>
               </el-icon>
               <span>{{ menuItem.meta.menuName }}</span>
             </el-menu-item>
@@ -59,6 +57,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getMenus } from '@/config/menu.js';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+
+const icons = {};
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  icons[key] = component;
+}
 
 const router = useRouter();
 const menuData = getMenus();

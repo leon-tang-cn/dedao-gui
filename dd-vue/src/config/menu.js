@@ -1,42 +1,56 @@
 export function getMenus() {
   const menus = [
-    // {
-    //   id: 0,
-    //   name: "buttonAction",
-    //   path: "/",
-    //   meta: {
-    //     menuName: "首页",
-    //     icon: "HomeFilled"
-    //   }
-    // },
     {
       id: 1,
       name: "home",
       path: "/",
       meta: {
         menuName: "首页",
-        icon: "HomeFilled",
+        icon: "Avatar",
         show: true
       }
     },
     {
       id: 2,
-      name: "ebookLib",
-      path: "/ebooks",
+      name: "ebooks",
+      children: [
+        {
+          id: 21,
+          name: "ebookLib",
+          path: "/ebooks",
+          meta: {
+            menuName: "电子书库",
+            icon: "Goods",
+            show: true
+          }
+        },
+        {
+          id: 22,
+          name: "ebook",
+          path: "/ebook",
+          meta: {
+            menuName: "我的书架",
+            icon: "ShoppingCartFull",
+            show: true
+          }
+        }
+      ],
       meta: {
-        menuName: "电子书库",
-        icon: "models",
+        icon: "Reading",
+        menuName: "电子书",
         show: true
       }
     },
     {
       id: 3,
-      name: "ebook",
-      path: "/ebook",
+      name: "listens",
+      children: [
+        
+      ],
       meta: {
-        menuName: "我的书架",
-        icon: "models",
-        show: true
+        icon: "Headset",
+        menuName: "听书",
+        show: false
       }
     },
     {
@@ -45,7 +59,7 @@ export function getMenus() {
       path: "/buttonAction",
       meta: {
         menuName: "下载",
-        icon: "models",
+        icon: "Menu",
         show: false
       }
     },
@@ -67,7 +81,7 @@ export function getMenus() {
       path: "/config",
       meta: {
         menuName: "配置",
-        icon: "setting",
+        icon: "Setting",
         show: true
       }
     }
