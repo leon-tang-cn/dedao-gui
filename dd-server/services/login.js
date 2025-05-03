@@ -175,7 +175,7 @@ const { open } = require('sqlite');
     }
   });
 
-  loginService.get('/tryGetToken', async (req, res) => {
+  loginService.get('/getUserInfo', async (req, res) => {
     const db = await connectDb();
     try {
       if (!db) {
@@ -187,8 +187,8 @@ const { open } = require('sqlite');
         return res.json({ data: { status: 0 } });
       }
 
-      await axios('https://www.dedao.cn/api/hades/v2/product/list', {
-        method: 'POST',
+      const userInfoRes = await axios('https://www.dedao.cn/api/pc/user/info', {
+        method: 'GET',
         headers: {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
@@ -196,20 +196,9 @@ const { open } = require('sqlite');
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
           "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
           "sec-ch-ua-mobile": "?0"
-        },
-        data: {
-          "category": "ebook",
-          "display_group": true,
-          "filter": "all",
-          "filter_complete": 0,
-          "group_id": 0,
-          "order": "study",
-          "page": 1,
-          "page_size": 1,
-          "sort_type": "desc"
         }
       })
-      return res.json({ status: 1 })
+      return res.json({ status: 1, data: userInfoRes.data?.c || {} })
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         return res.json({ error: 403, message: '令牌已过期，请重新登录' });
