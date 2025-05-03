@@ -1,16 +1,16 @@
 # dedao-nodejs-gui
 
-###技术栈：
+### 技术栈：
 nodejs > 20
-VUE3
-Element Plus
-SQLITE3
-Electron
+</br>VUE3
+</br>Element Plus
+</br>SQLITE3
+</br>Electron
+</br>
+</br>epub：EPUB-GEN
+</br>pdf：puppeteer
 
-epub：EPUB-GEN
-pdf：puppeteer
-
-###编译
+### 编译
 1.windows
 ```
 cd dd-server
@@ -20,7 +20,7 @@ npm run dist:win
 ```
 2.mac环境下请分别编译前后端，并将前端编译后的dist文件夹中内容全部复制到dd-server目录下，再执行npm run dist:mac。
 
-###部分截图
+### 部分截图
 1.app内访问得到官网，如已扫码登陆，将替换cookie，访问官网时无需登陆
 <img width="1024" alt="image" src="https://github.com/user-attachments/assets/1cbe5270-6b67-4970-a093-be3ebd39096a" />
 2.从官网阅读电子书，在上方工具栏会出现下载按钮，点击跳转下载页面
