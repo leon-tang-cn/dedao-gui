@@ -1,4 +1,4 @@
-# dedao-nodejs-gui
+# dedao-gui
 
 ### 技术栈：
 nodejs > 20
