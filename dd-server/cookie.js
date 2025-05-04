@@ -4,10 +4,10 @@ const cookie = require('cookie');
 
 (async () => {
 
-  async function connectDb() {
+  async function connectDb(dbFilePath) {
       try {
           return await open({
-              filename: 'ddinfo.db',
+              filename: dbFilePath,
               driver: sqlite3.Database
           });
       } catch (error) {
@@ -16,8 +16,8 @@ const cookie = require('cookie');
       }
   }
 
-  const getSavedCookies = async () => {
-    const db = await connectDb();
+  const getSavedCookies = async (dbFilePath) => {
+    const db = await connectDb(dbFilePath);
     let result = null;
     try {
         if (db) {
@@ -49,12 +49,12 @@ const cookie = require('cookie');
     return cookies;
   }
 
-  const saveCookie = async (cookies) => {
+  const saveCookie = async (cookies, dbFilePath) => {
     const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
     const csrfToken = cookies.find(c => c.name === 'csrf_token')?.value;
     
     try {
-      const db = await connectDb();
+      const db = await connectDb(dbFilePath);
       if (!db) {
         return false
       }

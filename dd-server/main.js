@@ -3,6 +3,8 @@ const { spawn } = require('child_process');
 const path = require('path');
 const serverPath = path.join(app.getAppPath(), 'server.js');
 const { getSavedCookies, saveCookie } = require('./cookie.js');
+const userDataPath = app.getPath('documents');
+const dbFilePath = path.join(userDataPath, 'ddinfo.db');
 
 (async () => {
     let serverProcess;
@@ -10,11 +12,10 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
     let ddWindow;
     let progressWindow;
     let logWindow;
-
-    const cookies = await getSavedCookies();
+    let cookies = await getSavedCookies(dbFilePath);
 
     function startServer() {
-        serverProcess = spawn(process.execPath, [serverPath], { env: { ELECTRON_RUN_AS_NODE: "1" } })
+        serverProcess = spawn(process.execPath, [serverPath], { env: { ELECTRON_RUN_AS_NODE: "1", USER_DATA_PATH: userDataPath } })
 
         serverProcess.stdout.on('data', (data) => {
             console.log(`${data}`);
@@ -52,7 +53,6 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
             for (const cookie of cookies) {
                 await webContents.session.cookies.remove(cookie.domain, cookie.name);
             }
-            console.log('Cookies 已清空');
         } catch (error) {
             console.error('清空 cookies 时出错:', error);
         }
@@ -88,14 +88,15 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
             if (currentUrl.indexOf('https://www.dedao.cn/ebook/reader') >= 0) {
                 if (!cookies && cookies.length === 0) {
                     const currentCookies = await window.webContents.session.cookies.get({});
-                    await saveCookie(currentCookies);
+                    cookies = currentCookies;
+                    await saveCookie(currentCookies, dbFilePath);
                 }
                 await insertButton(window);
-                // window.webContents.openDevTools({ mode: 'detach' });
             } else if (currentUrl.indexOf('https://www.dedao.cn/ebook/detail') === 0) {
                 if (!cookies && cookies.length === 0) {
                     const currentCookies = await window.webContents.session.cookies.get({});
-                    await saveCookie(currentCookies);
+                    cookies = currentCookies;
+                    await saveCookie(currentCookies, dbFilePath);
                 }
                 await startObservingDOM(window);
             }
@@ -192,7 +193,6 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
         if (!ddWindow.isVisible()) {
             progressWindow.show();
             ddWindow.loadURL("https://www.dedao.cn/")
-            // ddWindow.webContents.openDevTools({ mode: 'detach' });
 
             ddWindow.webContents.on('did-finish-load', async () => {
                 if (!cookieSetted) {
@@ -277,11 +277,26 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
             icon: path.join(app.getAppPath(), 'favicon.ico')
         });
 
-        const template = [
-        ];
+        if (process.platform === 'darwin') {
+            const template = [{
+                label: app.name,
+                submenu: [
+                    { role: 'about' },
+                    { type: 'separator' },
+                    { role: 'services' },
+                    { type: 'separator' },
+                    { role: 'hide' },
+                    { role: 'hideOthers' },
+                    { role: 'unhide' },
+                    { type: 'separator' },
+                    { role: 'quit' }
+                ]
+            }
+            ];
 
-        const menu = Menu.buildFromTemplate(template);
-        Menu.setApplicationMenu(menu);
+            const menu = Menu.buildFromTemplate(template);
+            Menu.setApplicationMenu(menu);
+        }
         mainWindow.loadFile('index.html');
 
         logWindow = new BrowserWindow({
@@ -328,9 +343,13 @@ const { getSavedCookies, saveCookie } = require('./cookie.js');
 
     app.on('window-all-closed', function () {
         if (serverProcess) {
-            serverProcess.kill();
+            if (process.platform === 'win32') {
+                serverProcess.kill();
+            } else {
+                process.kill(serverProcess.pid);
+            }
         }
-        if (process.platform !== 'darwin') app.quit();
+        app.quit();
     });
 
     app.on('will-quit', () => {

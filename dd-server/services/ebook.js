@@ -1,12 +1,14 @@
 const express = require('express');
 const axios = require('axios');
 const sqlite3 = require('sqlite3');
+const path = require('path');
 const { open } = require('sqlite');
 const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
 const { Svg2Html } = require('./svg2html');
 const { Svg2Pdf } = require('./svg2pdf');
 const { Svg2Epub } = require('./svg2epub');
+const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
 
 (async () => {
   var CipherKey = "3e4r06tjkpjcevlbslr3d96gdb5ahbmo" //"3e4r06tjkpjcevlbslr3d96gdb5ahbmo"
@@ -15,7 +17,7 @@ const { Svg2Epub } = require('./svg2epub');
   async function connectDb() {
     try {
       return await open({
-        filename: 'ddinfo.db',
+        filename: dbFilePath,
         driver: sqlite3.Database
       });
     } catch (error) {

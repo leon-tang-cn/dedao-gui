@@ -68,12 +68,6 @@
             "index.html",
             "log.html",
             "notice.html"
-        ],
-        "extraResources": [
-            {
-                "from": "ddinfo.db",
-                "to": ".."
-            }
         ]
     }
 }

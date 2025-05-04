@@ -1,13 +1,15 @@
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
+const path = require('path');
+const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
 
 (async () => {
 
   async function connectDb() {
     try {
       return await open({
-        filename: 'ddinfo.db',
+        filename: dbFilePath,
         driver: sqlite3.Database
       });
     } catch (error) {
