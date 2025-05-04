@@ -50,7 +50,6 @@
         },
         "mac": {
             "target": [
-                "dmg",
                 "pkg"
             ],
             "category": "public.app-category.productivity"

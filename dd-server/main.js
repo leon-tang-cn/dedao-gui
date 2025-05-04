@@ -10,9 +10,11 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
     let serverProcess;
     let mainWindow;
     let ddWindow;
+    let ddWindowLoaded = false;
     let progressWindow;
     let logWindow;
     let cookies = await getSavedCookies(dbFilePath);
+    let subWindows = [];
 
     function startServer() {
         serverProcess = spawn(process.execPath, [serverPath], { env: { ELECTRON_RUN_AS_NODE: "1", USER_DATA_PATH: userDataPath } })
@@ -77,6 +79,11 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
             });
             newWindow.maximize();
             newWindow.loadURL(url);
+
+            newWindow.on('close', (e) => {
+                subWindows = subWindows.filter(id => id !== newWindow.id);
+            });
+            subWindows.push(newWindow.id);
             setupWindow(newWindow, false);
             return { action: 'deny' };
         });
@@ -189,8 +196,7 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
 
     // 监听来自渲染进程的消息
     ipcMain.on('open-window', (event, windowName) => {
-
-        if (!ddWindow.isVisible()) {
+        if (!ddWindow.isVisible() && !ddWindowLoaded) {
             progressWindow.show();
             ddWindow.loadURL("https://www.dedao.cn/")
 
@@ -211,12 +217,40 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
                     ddWindow.maximize();
                     setupWindow(ddWindow, true);
                     ddWindow.show();
+                    ddWindowLoaded = true;
                 }
             });
+        } else if (!ddWindow.isVisible() && ddWindowLoaded) {
+            ddWindow.show();
         } else {
             ddWindow.focus();
         }
     });
+
+    const createDdWindow = () => {
+        ddWindow = new BrowserWindow({
+            width: 1440,
+            height: 900,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true,
+                webSecurity: false
+            },
+            autoHideMenuBar: true,
+            center: true,
+            fullscreenable: false,
+            show: false,
+            icon: path.join(app.getAppPath(), 'favicon.ico')
+        });
+
+        ddWindow.on('close', (e) => {
+            if (!closeAction) {
+                e.preventDefault();
+                ddWindow.hide();
+            }
+        });
+    }
 
     const createWindow = () => {
         mainWindow = new BrowserWindow({
@@ -237,8 +271,14 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
 
         mainWindow.on('close', () => {
             closeAction = true;
-            ddWindow.close();
-            logWindow.close();
+            if (!ddWindow.isDestroyed()) ddWindow.close();
+            if (!logWindow.isDestroyed()) logWindow.close();
+            for (var i = 0; i < subWindows.length; i++) {
+                const subWindow = BrowserWindow.fromId(subWindows[i]);
+                if (subWindow && !subWindow.isDestroyed()) {
+                    subWindow.close();
+                }
+            }
         });
 
         mainWindow.maximize();
@@ -261,21 +301,7 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
 
         progressWindow.loadFile('notice.html');
 
-        ddWindow = new BrowserWindow({
-            width: 1440,
-            height: 900,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                enableRemoteModule: true,
-                webSecurity: false
-            },
-            autoHideMenuBar: true,
-            center: true,
-            fullscreenable: false,
-            show: false,
-            icon: path.join(app.getAppPath(), 'favicon.ico')
-        });
+        createDdWindow();
 
         if (process.platform === 'darwin') {
             const template = [{
