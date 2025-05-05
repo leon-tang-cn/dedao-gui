@@ -44,7 +44,7 @@
             "target": [
                 "nsis"
             ],
-            "icon": "./icon.ico"
+            "icon": "./icon256.ico"
         },
         "nsis": {
             "oneClick": false,
@@ -55,7 +55,8 @@
             "target": [
                 "pkg"
             ],
-            "category": "public.app-category.productivity"
+            "category": "public.app-category.productivity",
+            "icon": "./icon512.png"
         },
         "files": [
             "main.js",

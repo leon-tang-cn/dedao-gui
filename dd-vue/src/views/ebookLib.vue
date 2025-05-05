@@ -87,9 +87,14 @@
             </el-icon>
           </el-button>
         </div>
-        <el-pagination v-model:current-page="searchCurrentPage" v-model:page-size="searchPageSize"
-          layout="total, prev, pager, next, jumper, default" :total="searchTotalCount"
-          @size-change="handleSearchSizeChange" @current-change="handleSearchCurrentChange" />
+        <div style="display: flex;flex-flow: row nowrap;justify-content: flex-start;">
+          <el-button plain :loading="onSearchLoading" :disabled="searchCurrentPage == 1" @click="prevPage">
+            上一页
+          </el-button>
+          <el-button plain :loading="onSearchLoading" :disabled="!canSearchMore" @click="nextPage">
+            下一页
+          </el-button>
+        </div>
       </div>
     </template>
     <template v-else>
@@ -142,7 +147,7 @@
           </el-button>
         </div>
         <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
-          layout="total, prev, pager, next, jumper, default" :total="totalCount" @size-change="handleSizeChange"
+          layout="total, prev, pager, next, jumper, default" :total="totalCount"
           @current-change="handleCurrentChange" />
       </div>
     </template>
@@ -166,7 +171,7 @@ const ebookSearchResults = ref([]);
 const currentPage = ref(1);
 const searchCurrentPage = ref(1);
 const pageSize = ref(20);
-const searchPageSize = ref(20);
+const searchPageSize = ref(10);
 const totalCount = ref(0);
 const searchTotalCount = ref(0);
 const sortStrategy = ref("HOT");
@@ -180,6 +185,7 @@ const labelId = ref("");
 const navigationId = ref("");
 const selectedEnids = ref([]);
 const onAddAcrtLoading = ref(false);
+const canSearchMore = ref(false);
 
 const selectCategory = (item) => {
   if (item.value === labelId.value) {
@@ -192,6 +198,7 @@ const selectCategory = (item) => {
     labelId.value = item.sub_options[0].value;
   }
   navigationId.value = item.value;
+  currentPage.value = 1;
   getEbookList(true);
 }
 
@@ -200,23 +207,21 @@ const selectSubCategory = (item) => {
     return;
   }
   labelId.value = item.value;
-  getEbookList(true);
-}
-
-const handleSizeChange = (val) => {
-  pageSize.value = val;
+  currentPage.value = 1;
   getEbookList(true);
 }
 const handleCurrentChange = (val) => {
   currentPage.value = val;
   getEbookList(true);
 }
-const handleSearchSizeChange = (val) => {
-  searchPageSize.value = val;
+const prevPage = () => {
+  if (searchCurrentPage.value > 1) {
+    searchCurrentPage.value--;
+  }
   searchBook();
 }
-const handleSearchCurrentChange = (val) => {
-  searchCurrentPage.value = val;
+const nextPage = () => {
+  searchCurrentPage.value++;
   searchBook();
 }
 const getEbookCategory = async () => {
@@ -254,7 +259,7 @@ const getEbookList = async (ignoreGetCategory) => {
     if (!ignoreGetCategory) {
       await getEbookCategory();
     }
-    const res = await sendRequest(`/api/ebook/getEbooks?currentPage=${currentPage.value}&pageSize=${pageSize.value}&requestId=${requestId.value}&sortStrategy=${sortStrategy.value}&labelId=${labelId.value}&navigationId=${navigationId.value}`)
+    const res = await sendRequest(`/api/ebook/getEbooks?currentPage=${currentPage.value - 1}&pageSize=${pageSize.value}&requestId=${requestId.value}&sortStrategy=${sortStrategy.value}&labelId=${labelId.value}&navigationId=${navigationId.value}`)
 
     if (res.error) {
       ElMessage.error(res.message);
@@ -266,7 +271,11 @@ const getEbookList = async (ignoreGetCategory) => {
       return;
     }
     ebookList.value = res.c?.product_list || [];
-    totalCount.value = res.c?.total || 0;
+    if (res.c && res.c.is_more == 0) {
+      totalCount.value = ebookList.value.length;
+    } else {
+      totalCount.value = res.c?.total || 0;
+    }
   } finally {
     onLibLoading.value = false;
   }
@@ -290,7 +299,8 @@ const searchBook = async () => {
       return;
     }
     ebookSearchResults.value = res.c?.data?.moduleList?.[0]?.layerDataList || [];
-    searchTotalCount.value = res.c?.data?.moduleList?.[0]?.layerScore || 0;
+    console.log(res.c?.data?.isMore === 1 )
+    canSearchMore.value = res.c?.data?.isMore === 1 || false;
     requestId.value = res.c?.data?.requestId || "";
   } finally {
     onSearchLoading.value = false;

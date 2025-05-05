@@ -14,6 +14,8 @@ if (process.env.USER_DATA_PATH) {
 } else {
   dbFilePath = path.join(__dirname, '../ddinfo.db');
 }
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
+const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'";
 
 (async () => {
   var CipherKey = "3e4r06tjkpjcevlbslr3d96gdb5ahbmo" //"3e4r06tjkpjcevlbslr3d96gdb5ahbmo"
@@ -51,8 +53,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': `${result.cookies};token=${result.csrfToken}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -97,8 +99,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': `${result.cookies};token=${result.csrfToken}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -148,8 +150,8 @@ if (process.env.USER_DATA_PATH) {
             'Accept': 'application/json, text/plain, */*',
             "xi-csrf-token": result.csrfToken,
             'Cookie': `${result.cookies};token=${result.csrfToken}`,
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-            "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+            "User-Agent": userAgent,
+            "sec-ch-ua": secChUa,
             "sec-ch-ua-mobile": "?0"
           },
           data: {
@@ -170,8 +172,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': `${result.cookies};token=${result.csrfToken}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -214,8 +216,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': `${result.cookies};token=${result.csrfToken}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -257,8 +259,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': `${result.cookies};token=${result.csrfToken}`,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -296,8 +298,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': result.cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -345,8 +347,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": csrfToken,
           'Cookie': cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         },
         data: {
@@ -415,8 +417,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': result.cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         }
       })
@@ -469,8 +471,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': result.cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         }
       })
@@ -482,8 +484,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': result.cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         }
       })
@@ -498,8 +500,8 @@ if (process.env.USER_DATA_PATH) {
           'Accept': 'application/json, text/plain, */*',
           "xi-csrf-token": result.csrfToken,
           'Cookie': result.cookies,
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-          "sec-ch-ua": "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'",
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
           "sec-ch-ua-mobile": "?0"
         }
       })

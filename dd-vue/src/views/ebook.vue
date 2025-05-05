@@ -14,11 +14,13 @@
           批量下载
         </el-button>
       </div>
-      <div v-if="multiDownloadProgress > 0">
-        <el-progress :percentage="multiDownloadProgress" :format="multiDownloadProgressStatus" style="width: 100%;" />
+      <div v-if="multiDownloadProgress > 0" style="width: 100%;display: flex;flex-flow: column nowrap;align-items: flex-start;">
+        <el-progress :percentage="multiDownloadProgress" style="width: 100%;" />
+        <span class="progress-text">{{ currentRowText }}</span>
       </div>
-      <div v-if="progress > 0">
-        <el-progress :percentage="progress" :format="processStatus" style="width: 100%;" />
+      <div v-if="progress > 0" style="width: 100%;display: flex;flex-flow: column nowrap;align-items: flex-start;">
+        <el-progress :percentage="progress" style="width: 100%;" />
+        <span class="progress-text">{{ currentStepText }}</span>
       </div>
     </div>
     <el-table :data="ebookList" ref="mycartTable" style="width: 100%;flex: 1;"
@@ -126,7 +128,7 @@ const multiDownloadProgressStatus = () => {
 };
 
 const handleSelectionChange = (val) => {
-  multiSelected.value.push(...val);
+  multiSelected.value = val;
 }
 const clearSelection = () => {
   multiSelected.value = [];
@@ -173,7 +175,7 @@ const multiDownloadFile = async () => {
     const row = multiSelected.value[i];
     multiDownloadProgress.value += 1;
     currentRowText.value = `正在下载第${i + 1}本: ${row.title}`;
-    await downloadFile(i, row);
+    await downloadFile(i, row, [], i < multiSelected.value.length);
     multiDownloadProgress.value += (step - 1);
   }
   multiDownloadProgress.value = 100;
@@ -190,7 +192,7 @@ const singleDownloadFile = async (index, row, types) => {
   await downloadFile(index, row, types);
 }
 
-const downloadFile = async (index, row, types) => {
+const downloadFile = async (index, row, types, isMore) => {
   return new Promise((resolve, reject) => {
     let fetchTypes = [];
     if (types && types.length > 0) {
@@ -227,10 +229,12 @@ const downloadFile = async (index, row, types) => {
         currentStepText.value = data.finalResult
         eventSource.close();
         resolve();
-        setTimeout(() => {
-          progress.value = 0;
-          currentStepText.value = ''
-        }, 3000);
+        if (!isMore) {
+          setTimeout(() => {
+            progress.value = 0;
+            currentStepText.value = ''
+          }, 3000);
+        }
       }
       if (data.error) {
         currentStepText.value = data.error
@@ -296,5 +300,10 @@ onMounted(async () => {
 
 .container-footer {
   height: 20px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #ccc;
 }
 </style>
