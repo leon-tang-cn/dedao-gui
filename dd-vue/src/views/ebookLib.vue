@@ -8,34 +8,11 @@
           <el-radio-button label="最新" value="NEW" />
         </el-radio-group>
         <div style="flex: 1;display: flex;flex-flow: row nowrap;justify-content: flex-end;gap: 10px;">
-          <el-input v-model="searchKeyword" placeholder="请输入关键字搜索" style="width: 300px;">
+          <el-input v-model="searchKeyword" placeholder="请输入关键字搜索" clearable style="width: 300px;" @change="searchBook">
             <template #append>
               <el-button :icon="Search" :loading="onSearchLoading" @click="searchBook" />
             </template>
           </el-input>
-        </div>
-      </div>
-    </div>
-    <div v-if="categories.length > 0" style="display: flex;flex-flow: column wrap;gap: 20px;">
-      <div style="display: flex;flex-flow: row nowrap;gap: 10px;">
-        <span style="width: 32px;font-size: 14px;">分类</span>
-        <div style="flex:1;display: flex;flex-flow: row wrap;gap: 20px;align-items: center;">
-          <template v-for="(item, index) in categories">
-            <span :class="['category-item', item.value == navigationId ? 'is-selected' : '']"
-              @click="selectCategory(item)">{{
-                item.name }}</span>
-          </template>
-        </div>
-      </div>
-      <div v-if="subCategories.length > 0" style="display: flex;flex-flow: norow wrap;gap: 10px;">
-        <span style="width: 32px;"></span>
-        <div
-          style="flex: 1;display: flex;flex-flow: row wrap;gap: 20px;align-items: center;padding: 10px 0px;background-color: #f7f7f7;">
-          <template v-for="(item, index) in subCategories">
-            <span :class="['category-item', item.value == labelId ? 'is-selected' : '']" style="font-size: 12px;"
-              @click="selectSubCategory(item)">{{
-                item.name }}</span>
-          </template>
         </div>
       </div>
     </div>
@@ -98,6 +75,29 @@
       </div>
     </template>
     <template v-else>
+      <div v-if="categories.length > 0" style="display: flex;flex-flow: column wrap;gap: 20px;">
+        <div style="display: flex;flex-flow: row nowrap;gap: 10px;">
+          <span style="width: 32px;font-size: 14px;">分类</span>
+          <div style="flex:1;display: flex;flex-flow: row wrap;gap: 20px;align-items: center;">
+            <template v-for="(item, index) in categories">
+              <span :class="['category-item', item.value == navigationId ? 'is-selected' : '']"
+                @click="selectCategory(item)">{{
+                  item.name }}</span>
+            </template>
+          </div>
+        </div>
+        <div v-if="subCategories.length > 0" style="display: flex;flex-flow: norow wrap;gap: 10px;">
+          <span style="width: 32px;"></span>
+          <div
+            style="flex: 1;display: flex;flex-flow: row wrap;gap: 20px;align-items: center;padding: 10px 0px;background-color: #f7f7f7;">
+            <template v-for="(item, index) in subCategories">
+              <span :class="['category-item', item.value == labelId ? 'is-selected' : '']" style="font-size: 12px;"
+                @click="selectSubCategory(item)">{{
+                  item.name }}</span>
+            </template>
+          </div>
+        </div>
+      </div>
       <el-table :data="ebookList" style="width: 100%;flex: 1;" @selection-change="handleLibSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="#" width="60" align="center" />
@@ -283,7 +283,7 @@ const getEbookList = async (ignoreGetCategory) => {
 
 const searchBook = async () => {
   if (!searchKeyword.value) {
-    ElMessage.error("请输入搜索内容");
+    ebookSearchResults.value = [];
     return;
   }
   onSearchLoading.value = true;
@@ -299,7 +299,7 @@ const searchBook = async () => {
       return;
     }
     ebookSearchResults.value = res.c?.data?.moduleList?.[0]?.layerDataList || [];
-    console.log(res.c?.data?.isMore === 1 )
+    console.log(res.c?.data?.isMore === 1)
     canSearchMore.value = res.c?.data?.isMore === 1 || false;
     requestId.value = res.c?.data?.requestId || "";
   } finally {
