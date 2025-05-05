@@ -18,12 +18,22 @@ nodejs > 20
 ### 编译
 1.windows
 ```
-cd dd-server
+cd dd-vue
 npm i
-npm run prebuild
+cd ../dd-server
+npm i
+npm run prebuild:win
 npm run dist:win
 ```
-2.mac环境下请分别编译前后端，并将前端编译后的dist文件夹中内容全部复制到dd-server目录下，再执行npm run dist:mac。
+2.mac
+```
+cd dd-vue
+npm i
+cd ../dd-server
+npm i
+sudo npm run prebuild:mac
+sudo npm run dist:mac
+```
 
 ### 部分截图
 1.app内访问得到官网，如已扫码登陆，将替换cookie，访问官网时无需登陆
