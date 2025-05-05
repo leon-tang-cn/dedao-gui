@@ -20,7 +20,7 @@
       <el-table :data="ebookSearchResults" style="width: 100%;flex: 1;" @selection-change="handleSearchSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="#" width="60" align="center" />
-        <el-table-column label="书名" width="400">
+        <el-table-column label="书名" min-width="300">
           <template #default="scope">
             <div style="display: flex; align-items: center;gap: 10px;flex-flow: row nowrap;">
               <img :src="scope.row.image" alt="icon" style="width: 30px; height: 30px;" />
@@ -33,7 +33,21 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="author" label="作者" min-width="200" />
+        <el-table-column prop="author" label="作者" min-width="160" />
+        <el-table-column label="详情" min-width="100" align="center">
+          <template #default="scope">
+            <el-popover effect="light" trigger="click" @show="getBookContent(scope.$index, scope.row.extra.enid)">
+              <div style="display: flex;flex-flow: column nowrap;gap: 5px;">
+                <span v-html="scope.row.dtlCnt"></span>
+              </div>
+              <template #reference>
+                <el-icon style="cursor: pointer;font-size: 20px;">
+                  <InfoFilled />
+                </el-icon>
+              </template>
+            </el-popover>
+          </template>
+        </el-table-column>
         <el-table-column fixed="right" label="操作" min-width="120">
           <template #default="scope">
             <template v-if="scope.row.extra.product_vip_info.in_book_rack">
@@ -101,7 +115,7 @@
       <el-table :data="ebookList" style="width: 100%;flex: 1;" @selection-change="handleLibSelectionChange">
         <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="#" width="60" align="center" />
-        <el-table-column label="书名" width="400">
+        <el-table-column label="书名" min-width="300">
           <template #default="scope">
             <div style="display: flex; align-items: center;gap: 10px;flex-flow: row nowrap;">
               <img :src="scope.row.index_img" alt="icon" style="width: 30px; height: 30px;" />
@@ -114,7 +128,21 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="lecturer_name" label="作者" min-width="200">
+        <el-table-column prop="lecturer_name" label="作者" min-width="160">
+        </el-table-column>
+        <el-table-column label="详情" min-width="100" align="center">
+          <template #default="scope">
+            <el-popover effect="light" trigger="click" @show="getBookContent(scope.$index, scope.row.id_out)">
+              <div style="display: flex;flex-flow: column nowrap;gap: 5px;">
+                <span v-html="scope.row.dtlCnt"></span>
+              </div>
+              <template #reference>
+                <el-icon style="cursor: pointer;font-size: 20px;">
+                  <InfoFilled />
+                </el-icon>
+              </template>
+            </el-popover>
+          </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作" min-width="120">
           <template #default="scope">
@@ -187,6 +215,20 @@ const selectedEnids = ref([]);
 const onAddAcrtLoading = ref(false);
 const canSearchMore = ref(false);
 
+const getBookContent = async (index, enid) => {
+  if (!ebookList.value[index].dtlCnt) {
+    const res = await sendRequest(`/api/ebook/getEbookContent?enid=${enid}`)
+    const contents = `分类：${ res.c?.classify_name || ''}</br>
+      字数：${Math.ceil((res.c?.count || 0) / 1024)}千字</br>
+      豆瓣得分：${ res.c?.douban_score || ''}</br>
+      得到评分：${ res.c?.product_score || ''}`
+    if (ebookSearchResults.value.length > 0) {
+      ebookSearchResults.value[index].dtlCnt = contents;
+    } else {
+      ebookList.value[index].dtlCnt = contents;
+    }
+  }
+}
 const selectCategory = (item) => {
   if (item.value === labelId.value) {
     return;

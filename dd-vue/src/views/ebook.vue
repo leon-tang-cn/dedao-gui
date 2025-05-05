@@ -10,11 +10,13 @@
             <el-checkbox :value="item.value">{{ item.label }}</el-checkbox>
           </template>
         </el-checkbox-group>
-        <el-button size="small" :disabled="!multiSelected || multiSelected.length <= 0" @click="multiDownloadFile">
+        <el-button size="small" :loading="onMultiDownload" :disabled="!multiSelected || multiSelected.length <= 0"
+          @click="multiDownloadFile">
           批量下载
         </el-button>
       </div>
-      <div v-if="multiDownloadProgress > 0" style="width: 100%;display: flex;flex-flow: column nowrap;align-items: flex-start;">
+      <div v-if="multiDownloadProgress > 0"
+        style="width: 100%;display: flex;flex-flow: column nowrap;align-items: flex-start;">
         <el-progress :percentage="multiDownloadProgress" style="width: 100%;" />
         <span class="progress-text">{{ currentRowText }}</span>
       </div>
@@ -23,11 +25,11 @@
         <span class="progress-text">{{ currentStepText }}</span>
       </div>
     </div>
-    <el-table :data="ebookList" ref="mycartTable" style="width: 100%;flex: 1;"
+    <el-table :data="ebookList" v-loading="onActionRun" ref="mycartTable" style="width: 100%;flex: 1;"
       @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="#" width="60" align="center" />
-      <el-table-column label="书名" width="400">
+      <el-table-column label="书名" min-width="300">
         <template #default="scope">
           <div style="display: flex; align-items: center;gap: 10px;flex-flow: row nowrap;">
             <img :src="scope.row.icon" alt="icon" style="width: 30px; height: 30px;" />
@@ -40,8 +42,22 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="author" label="作者" min-width="200" />
-      <el-table-column fixed="right" label="操作" min-width="200">
+      <el-table-column prop="author" label="作者" min-width="160" />
+      <el-table-column label="详情" min-width="100" align="center">
+        <template #default="scope">
+          <el-popover effect="light" trigger="click" @show="getBookContent(scope.$index, scope.row.enid)">
+            <div style="display: flex;flex-flow: column nowrap;gap: 5px;">
+              <span v-html="scope.row.dtlCnt"></span>
+            </div>
+            <template #reference>
+              <el-icon style="cursor: pointer;font-size: 20px;">
+                <InfoFilled />
+              </el-icon>
+            </template>
+          </el-popover>
+        </template>
+      </el-table-column>
+      <el-table-column fixed="right" label="操作" min-width="280">
         <template #default="scope">
           <el-button size="small" @click="removeCart(scope.row.enid)">
             移出书架
@@ -111,6 +127,8 @@ const pageSize = ref(10);
 const totalCount = ref(0);
 const multiSelected = ref([]);
 const mycartTable = ref(null);
+const onActionRun = ref(false);
+const onMultiDownload = ref(false);
 
 const handleSizeChange = (val) => {
   pageSize.value = val;
@@ -139,20 +157,37 @@ const clearSelection = () => {
 
 selectedTypes.value = ['pdf', 'epub']
 
-const getEbookList = async () => {
-  const res = await sendRequest(`/api/ebook/getEbookList?currentPage=${currentPage.value}&pageSize=${pageSize.value}`)
+const getBookContent = async (index, enid) => {
+  if (!ebookList.value[index].dtlCnt) {
+    const res = await sendRequest(`/api/ebook/getEbookContent?enid=${enid}`)
+    ebookList.value[index].dtlCnt = `分类：${ res.c?.classify_name || ''}</br>
+    字数：${Math.ceil((res.c?.count || 0) / 1024)}千字</br>
+    豆瓣得分：${ res.c?.douban_score || ''}</br>
+    得到评分：${ res.c?.product_score || ''}`;
+  }
+}
 
-  if (res.error) {
-    ElMessage.error(res.message);
-    if (res.error === 403) {
-      router.push({ name: 'home' });
+const getEbookList = async () => {
+  onActionRun.value = true;
+  try {
+    const res = await sendRequest(`/api/ebook/getEbookList?currentPage=${currentPage.value}&pageSize=${pageSize.value}`)
+
+    if (res.error) {
+      ElMessage.error(res.message);
+      if (res.error === 403) {
+        router.push({ name: 'home' });
+        return;
+      }
+      ebookList.value = [];
       return;
     }
-    ebookList.value = [];
-    return;
+    ebookList.value = res.c?.list || [];
+    totalCount.value = res.c?.total || 0;
+  } catch (error) {
+    ElMessage.error(error);
+  } finally {
+    onActionRun.value = false;
   }
-  ebookList.value = res.c?.list || [];
-  totalCount.value = res.c?.total || 0;
 }
 
 const checkConfig = async () => {
@@ -170,18 +205,25 @@ const multiDownloadFile = async () => {
   if (!isValid) {
     return;
   }
-  const step = Math.floor(100 / multiSelected.value.length);
-  for (let i = 0; i < multiSelected.value.length; i++) {
-    const row = multiSelected.value[i];
-    multiDownloadProgress.value += 1;
-    currentRowText.value = `正在下载第${i + 1}本: ${row.title}`;
-    await downloadFile(i, row, [], i < multiSelected.value.length);
-    multiDownloadProgress.value += (step - 1);
+  onMultiDownload.value = true;
+  try {
+    const step = Math.floor(100 / multiSelected.value.length);
+    for (let i = 0; i < multiSelected.value.length; i++) {
+      const row = multiSelected.value[i];
+      multiDownloadProgress.value += 1;
+      currentRowText.value = `正在下载第${i + 1}本: ${row.title}`;
+      await downloadFile(i, row, [], i < multiSelected.value.length);
+      multiDownloadProgress.value += (step - 1);
+    }
+    multiDownloadProgress.value = 100;
+    setTimeout(() => {
+      multiDownloadProgress.value = 0;
+    }, 3000);
+  } catch (error) {
+    ElMessage.error(error);
+  } finally {
+    onMultiDownload.value = false;
   }
-  multiDownloadProgress.value = 100;
-  setTimeout(() => {
-    multiDownloadProgress.value = 0;
-  }, 3000);
 }
 
 const singleDownloadFile = async (index, row, types) => {
@@ -189,7 +231,14 @@ const singleDownloadFile = async (index, row, types) => {
   if (!isValid) {
     return;
   }
-  await downloadFile(index, row, types);
+  onActionRun.value = true;
+  try {
+    await downloadFile(index, row, types);
+  } catch (error) {
+    ElMessage.error(error);
+  } finally {
+    onActionRun.value = false;
+  }
 }
 
 const downloadFile = async (index, row, types, isMore) => {

@@ -436,6 +436,43 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
     }
   });
 
+  ebookService.get('/getEbookContent', async (req, res) => {
+    const { enid } = req.query;
+    const db = await connectDb();
+    try {
+      if (!db) {
+        res.status(500).send({ message: '无法连接到数据库' });
+      }
+
+      let result = await db.get(`SELECT * FROM login_info`);
+      if (!result || !result.csrfToken) {
+        return res.json({ data: { status: 0 } });
+      }
+
+      const bookDetailRes = await axios(`https://www.dedao.cn/pc/ebook2/v1/pc/detail?id=${enid}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          "xi-csrf-token": result.csrfToken,
+          'Cookie': result.cookies,
+          "User-Agent": userAgent,
+          "sec-ch-ua": secChUa,
+          "sec-ch-ua-mobile": "?0"
+        }
+      })
+      return res.json(bookDetailRes.data);
+    } catch (error) {
+      console.log(error)
+      if (error.status === 401 || error.status === 403) {
+        res.write(`data: ${JSON.stringify({ error: 403 })}\n\n`);
+      } else {
+        res.write(`data: ${JSON.stringify({ error: error })}\n\n`);
+      }
+    } finally {
+      await db.close()
+    }
+  })
+
   ebookService.get('/getEbookDetail', async (req, res) => {
     const { enid, eType } = req.query;
     let downloadType = ['html', 'pdf', 'epub']
