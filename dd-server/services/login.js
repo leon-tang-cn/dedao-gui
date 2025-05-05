@@ -3,7 +3,12 @@ const axios = require('axios');
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 const path = require('path');
-const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+let dbFilePath = "";
+if (process.env.USER_DATA_PATH) {
+  dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+} else {
+  dbFilePath = path.join(__dirname, '../ddinfo.db');
+}
 
 (async () => {
 
@@ -185,7 +190,7 @@ const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
       }
 
       let result = await db.get(`SELECT * FROM login_info`);
-      if (!result || !result.oauthToken) {
+      if (!result || !result.csrfToken) {
         return res.json({ data: { status: 0 } });
       }
 
@@ -209,6 +214,32 @@ const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
     } finally {
       await db.close()
     }
+  });
+
+  loginService.get('/getLoginInfo', async (req, res) => {
+    const db = await connectDb();
+    if (!db) {
+      res.status(500).send({ message: '无法连接到数据库' });
+    }
+
+    let result = await db.get(`SELECT * FROM login_info`);
+    await db.close()
+    return res.json(result);
+  });
+
+  loginService.post('/updateLoginInfo', async (req, res) => {
+    const { csrfToken, cookies } = req.body;
+    const db = await connectDb();
+    if (!db) {
+      res.status(500).send({ message: '无法连接到数据库' });
+    }
+    await db.run(`DELETE FROM login_info`);
+    await db.run(
+      `INSERT INTO login_info (csrfToken, cookies) VALUES (?, ?)`,
+      [csrfToken, cookies]
+    );
+    await db.close()
+    return res.json({ message: '更新成功' });
   });
 
   loginService.post('/deleteLoginInfo', async (req, res) => {

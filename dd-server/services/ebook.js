@@ -8,7 +8,12 @@ const { Buffer } = require('node:buffer');
 const { Svg2Html } = require('./svg2html');
 const { Svg2Pdf } = require('./svg2pdf');
 const { Svg2Epub } = require('./svg2epub');
-const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+let dbFilePath = "";
+if (process.env.USER_DATA_PATH) {
+  dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+} else {
+  dbFilePath = path.join(__dirname, '../ddinfo.db');
+}
 
 (async () => {
   var CipherKey = "3e4r06tjkpjcevlbslr3d96gdb5ahbmo" //"3e4r06tjkpjcevlbslr3d96gdb5ahbmo"

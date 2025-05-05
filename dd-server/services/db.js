@@ -1,10 +1,16 @@
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 const path = require('path');
-const dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+let dbFilePath = "";
+if (process.env.USER_DATA_PATH) {
+  dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+} else {
+  dbFilePath = path.join(__dirname, '../ddinfo.db');
+}
+
 
 const initialTables = async function () {
-  
+
   const db = await open({
     filename: dbFilePath,
     driver: sqlite3.Database
@@ -24,7 +30,7 @@ const initialTables = async function () {
             )
           `
     },
-    
+
     {
       name: 'output_config',
       createSql: `
