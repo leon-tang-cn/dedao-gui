@@ -197,7 +197,26 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
     // 监听来自渲染进程的消息
     ipcMain.on('open-window', (event, windowName) => {
         if (!ddWindow.isVisible() && !ddWindowLoaded) {
+
+            progressWindow = new BrowserWindow({
+                width: 300,
+                height: 100,
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    enableRemoteModule: true,
+                    webSecurity: false
+                },
+                autoHideMenuBar: true,
+                center: true,
+                fullscreenable: false,
+                show: false,
+                icon: path.join(app.getAppPath(), 'favicon.ico')
+            })
+    
+            progressWindow.loadFile('notice.html');
             progressWindow.show();
+
             ddWindow.loadURL("https://www.dedao.cn/")
 
             ddWindow.webContents.on('did-finish-load', async () => {
@@ -213,7 +232,7 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
                         cookieSetted = true;
                         ddWindow.reload();
                     }
-                    progressWindow.hide();
+                    progressWindow.close();
                     ddWindow.maximize();
                     setupWindow(ddWindow, true);
                     ddWindow.show();
@@ -282,24 +301,6 @@ const dbFilePath = path.join(userDataPath, 'ddinfo.db');
         });
 
         mainWindow.maximize();
-
-        progressWindow = new BrowserWindow({
-            width: 300,
-            height: 100,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                enableRemoteModule: true,
-                webSecurity: false
-            },
-            autoHideMenuBar: true,
-            center: true,
-            fullscreenable: false,
-            show: false,
-            icon: path.join(app.getAppPath(), 'favicon.ico')
-        })
-
-        progressWindow.loadFile('notice.html');
 
         createDdWindow();
 

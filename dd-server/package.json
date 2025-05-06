@@ -5,16 +5,10 @@
     "main": "main.js",
     "scripts": {
         "vue:build": "cd ../dd-vue && npm run build",
-        "vue:resouce:delete:win": "rd /s /q assets & del /q index.html log.html favicon.ico",
-        "vue:resouce:delete:mac": "rm -rf assets index.html log.html favicon.ico",
-        "vue:resouce:copy:win": "xcopy ..\\dd-vue\\dist .\\ /e /i /y",
-        "vue:resouce:copy:mac": "cp -r ../dd-vue/dist/* ./ ",
         "dev": "node server.js",
-        "prebuild:win": "npm run vue:build && npm run vue:resouce:delete:win && npm run vue:resouce:copy:win",
-        "prebuild:mac": "npm run vue:build && npm run vue:resouce:delete:mac && npm run vue:resouce:copy:mac",
         "start": "npx electron .",
-        "dist:win": "npm run prebuild:win && electron-builder --windows",
-        "dist:mac": "npm run prebuild:mac && electron-builder --mac"
+        "dist:win": "npm run vue:build && electron-builder --windows",
+        "dist:mac": "npm run vue:build && electron-builder --mac"
     },
     "author": "",
     "license": "ISC",
@@ -49,7 +43,7 @@
         "nsis": {
             "oneClick": false,
             "allowToChangeInstallationDirectory": true,
-            "artifactName": "ddclient_installer.${ext}"
+            "artifactName": "ddclient_installer_${version}.${ext}"
         },
         "mac": {
             "target": [
@@ -66,11 +60,10 @@
             "server.js",
             "services/*",
             "services/**/*",
-            "assets/*",
-            "favicon.ico",
-            "index.html",
-            "log.html",
-            "notice.html"
+            {
+                "from": "../dd-vue/dist",
+                "filter": ["**/*.js", "**/*.css", "*.html", "*.ico"]
+            }
         ]
     }
 }

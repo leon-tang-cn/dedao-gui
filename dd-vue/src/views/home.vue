@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { sendRequest } from '@/utils/request.js';
+import { ElMessage } from 'element-plus';
 
 const qrCode = ref('');
 const showQrCode = ref(false);
@@ -61,7 +62,6 @@ logedIn.value = "0"
 const getQrCode = async () => {
   await sendRequest('/api/login/deleteLoginInfo', {}, 'POST')
   const res = await sendRequest('/api/login/getLoginQrCode')
-  console.log(res)
   qrCode.value = res.qrCode;
   showQrCode.value = true;
   checkLogin();
@@ -77,8 +77,9 @@ const checkLogin = async () => {
   setTimeout(async () => {
     const res = await sendRequest('/api/login/checkLogin')
     if (res.data.status == 1) {
-      console.log('登录成功');
+      ElMessage.success('登录成功');
       logedIn.value = '1';
+      await getUserInfo();
     } else {
       checkLogin();
     }
