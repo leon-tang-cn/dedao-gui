@@ -18,8 +18,8 @@ const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
 const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'";
 
 (async () => {
-  var CipherKey = "3e4r06tjkpjcevlbslr3d96gdb5ahbmo" //"3e4r06tjkpjcevlbslr3d96gdb5ahbmo"
-  var AesIv = "6fd89a1b3a7f48fb" //"6fd89a1b3a7f48fb"
+  const CipherKey = "3e4r06tjkpjcevlbslr3d96gdb5ahbmo"
+  const AesIv = "6fd89a1b3a7f48fb"
 
   async function connectDb() {
     try {
@@ -34,9 +34,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
   }
 
   const ebookService = express.Router();
-  // https://www.dedao.cn/pc/label/v2/algo/pc/filter/list
   ebookService.get('/getEbookCategory', async (req, res) => {
-    // const { pageSize, currentPage, sortStrategy } = req.query;
     const db = await connectDb();
     try {
       if (!db) {

@@ -5,4 +5,6 @@ dist
 *.tar.gz
 .DS_Store
 *.db
+log.txt
+output/
 package-lock.json

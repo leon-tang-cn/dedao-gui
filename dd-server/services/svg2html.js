@@ -35,7 +35,10 @@ const htmlEscaper = require('html-escaper');
   }
 
   function parseAttrAlt(attr) {
-    return (attr.alt || '').replace(/"/g, '&quot;');
+    if (attr.alt) {
+      return String(attr.alt).replace(/"/g, '&quot;');
+    }
+    return String('').replace(/"/g, '&quot;');
   }
 
   function parseAttrNewline(attr) {

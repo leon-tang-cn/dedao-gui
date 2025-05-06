@@ -22,13 +22,14 @@ const { OneByOneHtml } = require('./svg2html');
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.setContent(buf.join(''));
+    await page.setContent(buf.join(''), { timeout: 6000000 });
     await page.pdf({
       path: fileName,
       format: 'A4',
       printBackground: true,
       displayHeaderFooter: true,
       outline: true,
+      timeout: 6000000,
       headerTemplate: `<span style="padding: 0 30px; font-size: 14px; color: #333;">${docName}</span>`,
       footerTemplate: '<span style="padding: 0 30px; width: 100%; font-size: 14px; color: #333; text-align: right;"><span class="pageNumber"></span>/<span class="totalPages"></span></span>',
       margin: {
