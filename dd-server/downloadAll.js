@@ -29,7 +29,7 @@ process.stdout.setEncoding('utf8');
   }
 
   const pageSize = 100;
-  const currentPage = 1;
+  const currentPage = 0;
   const sortStrategy = "NEW"; // HOT, NEW
   const labelId = "X9vmWzAl54WYrJ78ayq1VjKbDeZRxzpvnpXEBOlvko9L026gdm3AnGNMDkG1x8JR";
   const navigationId = "X9vmWzAl54WYrJ78ayq1VjKbDeZRxzpvnpXEBOlvko9L026gdm3AnGNMDkG1x8JR";
@@ -56,8 +56,8 @@ process.stdout.setEncoding('utf8');
 
   const ebookListRes = await getBookList(1, currentPage);
   total = ebookListRes.c.total;
-  const steps = Math.ceil(total / pageSize);
-  for (let i = 1; i <= steps; i++) {
+  const steps = Math.ceil(total / pageSize) - 1;
+  for (let i = 0; i <= steps; i++) {
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
     for (let j = 0; j < currentList.length; j++) {
@@ -261,6 +261,7 @@ process.stdout.setEncoding('utf8');
     const offset = 0;
     let svgContents = [];
     console.log(`start download: ${title} - ${author}`)
+    console.time(`download: ${title} - ${author}`)
     for (var i = 0; i < orders.length; i++) {
       const pageSvgContents = await getEbookPages(orders[i].chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
 
@@ -275,12 +276,13 @@ process.stdout.setEncoding('utf8');
         console.log(`download progress: ${i + 1}/${orders.length} - ${currentToc.text}`)
       }
     }
+    console.timeEnd(`download: ${title} - ${author}`)
 
     const outputFileName = `${bookId}_${title}_${author}`;
 
     console.log(`generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
-    await Svg2Pdf(outputDir, outputFileName, title, svgContents, toc);
+    Svg2Pdf(outputDir, outputFileName, title, svgContents, toc);
     return { category, outputFileName };
   }
 })();
