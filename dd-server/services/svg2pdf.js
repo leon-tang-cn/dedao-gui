@@ -6,7 +6,14 @@ const { OneByOneHtml } = require('./svg2html');
 (async () => {
   async function Svg2Pdf(outputDir, title, docName, svgContents, toc) {
     fs.ensureDirSync(outputDir);
-    const filePreName = path.join(outputDir, title);
+    let reTitle = title.replace(/\//g, '_');
+    reTitle = reTitle.replace(/\\/g, '_');
+    reTitle = reTitle.replace(/\:/g, '_');
+    reTitle = reTitle.replace(/\*/g, '_');
+    reTitle = reTitle.replace(/\?/g, '_');
+    reTitle = reTitle.replace(/\"/g, '_');
+    reTitle = reTitle.replace(/\n/g, '');
+    const filePreName = path.join(outputDir, reTitle);
     const fileName = `${filePreName}.pdf`;
 
     const buf = [];
