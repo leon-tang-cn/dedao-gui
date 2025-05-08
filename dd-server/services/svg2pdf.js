@@ -3,8 +3,22 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { OneByOneHtml } = require('./svg2html');
 const { PDFDocument } = require('pdf-lib');
+const { open } = require('sqlite');
+const sqlite3 = require('sqlite3');
+let dbFilePath = path.join(__dirname, '../ddinfo.db');
 
 (async () => {
+  async function connectDb() {
+    try {
+      return open({
+        filename: dbFilePath,
+        driver: sqlite3.Database
+      });
+    } catch (error) {
+      console.error('无法连接到数据库:', error);
+      return null;
+    }
+  }
 
   async function mergePDFs(inputPaths, outputPath) {
     const mergedPdf = await PDFDocument.create();
@@ -121,6 +135,13 @@ const { PDFDocument } = require('pdf-lib');
         }
       }
       console.timeEnd(`PDF created in ${title}`)
+      const db = await connectDb();
+      if (db) {
+        await db.run(
+          `update download_his set uploaded = 1 where book_id = '${enid}'`
+        );
+        db.close();
+      }
     } catch (error) {
       console.error('create PDF failed:', error);
       const time = new Date().getTime();

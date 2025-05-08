@@ -21,7 +21,7 @@ let dbFilePath = path.join(__dirname, './ddinfo.db');
     const db = await connectDb();
 
     const bookInfos = await db.all(
-        `select * from download_his where author is not null`
+        `select * from download_his where author is not null and uploaded = 0`
     );
     db.close();
 
@@ -37,6 +37,10 @@ let dbFilePath = path.join(__dirname, './ddinfo.db');
         reTitle = reTitle.replace(/\n/g, '');
         let fileDir = path.join(`D:\\电子书\\EBook\\${category}`, `./${reTitle}.pdf`);
         const isExist = fs.existsSync(fileDir);
+        if (isExist) {
+            console.log(`文件已存在${book_id}，跳过下载：${fileDir}`);
+            break;
+        }
         if (!isExist) {
             fileDir = path.join(`${__dirname}\\output\\${category}`, `./${reTitle}.pdf`);
             if (!fs.existsSync(fileDir)) {
