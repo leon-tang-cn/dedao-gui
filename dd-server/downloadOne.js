@@ -61,12 +61,11 @@ process.stdout.setEncoding('utf8');
   const ebookListRes = await getBookList(1, currentPage);
   total = ebookListRes.c.total;
   const steps = Math.ceil(total / pageSize) - 1;
-  for (let i = 0; i <= steps; i++) {
+  for (let i = 10; i <= steps; i++) {
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
     for (let j = 0; j < currentList.length; j++) {
-      if (currentList[j].is_vip_book == "3") {
-        console.log(`skip vip book: ${currentList[j].name}`)
+      if (currentList[j].id_out != 'ekM2z5Kexap9AKyJEz8DOYn6GNrV20KNbRAwdgbRXq1Qvlj7P5ZmoMkLB47y6ONA') {
         continue;
       }
       const bookInfo = await checkDownloaded(currentList[j].id_out);
@@ -93,7 +92,7 @@ process.stdout.setEncoding('utf8');
       try {
         console.log(`current progress：page(${i}), book#${j + 1}`);
         if (j == 0 && i > 0) {
-          await delay(30000);
+          // await delay(30000);
         }
         let { category, outputFileName } = await downloadEbook(currentList[j].id_out);
         db = await connectDb();
@@ -102,11 +101,13 @@ process.stdout.setEncoding('utf8');
           [currentList[j].id_out, outputFileName, currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, category]
         );
         await db.close();
+        break;
       } catch (error) {
         console.error(error);
       }
     }
     console.log(`current progress：page(${i})`);
+    break;
   }
 
   async function checkDownloaded(bookId) {
@@ -271,6 +272,7 @@ process.stdout.setEncoding('utf8');
         "sec-ch-ua-mobile": "?0"
       }
     })
+
     const orders = bookDetailInfoRes.data.c.bookInfo.orders;
     const toc = bookDetailInfoRes.data.c.bookInfo.toc;
 
@@ -310,9 +312,6 @@ process.stdout.setEncoding('utf8');
     })
 
     const outputFileName = `${bookId}_${title}_${author}`;
-    if (!category || category === '') {
-      category = '未分类'
-    }
 
     console.log(`generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
