@@ -471,6 +471,14 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
     }
   })
 
+  function chunkArray(arr, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      chunks.push(arr.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
   ebookService.get('/getEbookDetail', async (req, res) => {
     const { enid, eType } = req.query;
     let downloadType = ['html', 'pdf', 'epub']
@@ -550,22 +558,46 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       let svgContents = [];
       console.time('html Generation Time');
       res.write(`data: ${JSON.stringify({ processStep: '转换图书数据', steps: orders.length })}\n\n`);
-      for (var i = 0; i < orders.length; i++) {
-        const pageSvgContents = await getEbookPages(orders[i].chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
 
-        svgContents.push({
-          Contents: pageSvgContents,
-          ChapterID: orders[i].chapterId,
-          PathInEpub: orders[i].PathInEpub,
-          OrderIndex: i,
-        })
-        let currentToc = toc.filter(toc => toc.href.split('#')[0] === orders[i].chapterId)[0];
-        if (currentToc && currentToc.text) {
-          res.write(`data: ${JSON.stringify({ processKey: currentToc.text })}\n\n`);
-        }
+      const chunks = chunkArray(orders, 5);
+      for (const chunk of chunks) {
+        const promises = chunk.map(async (order, i) => {
+          const orderIndex = orders.indexOf(order)
+          const pageSvgContents = await getEbookPages(order.chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
+  
+          svgContents.push({
+            Contents: pageSvgContents,
+            ChapterID: order.chapterId,
+            PathInEpub: order.PathInEpub,
+            OrderIndex: orderIndex,
+          })
+          let currentToc = toc.filter(toc => toc.href.split('#')[0] === order.chapterId)[0];
+          if (currentToc && currentToc.text) {
+            res.write(`data: ${JSON.stringify({ processKey: currentToc.text })}\n\n`);
+          }
+        });
+
+        await Promise.all(promises);
       }
+      // for (var i = 0; i < orders.length; i++) {
+      //   const pageSvgContents = await getEbookPages(orders[i].chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
+
+      //   svgContents.push({
+      //     Contents: pageSvgContents,
+      //     ChapterID: orders[i].chapterId,
+      //     PathInEpub: orders[i].PathInEpub,
+      //     OrderIndex: i,
+      //   })
+      //   let currentToc = toc.filter(toc => toc.href.split('#')[0] === orders[i].chapterId)[0];
+      //   if (currentToc && currentToc.text) {
+      //     res.write(`data: ${JSON.stringify({ processKey: currentToc.text })}\n\n`);
+      //   }
+      // }
 
       console.timeEnd('html Generation Time');
+      svgContents = svgContents.sort((a, b) => {
+        return a.OrderIndex - b.OrderIndex;
+      })
       const outputFileName = `${bookId}_${title}_${author}`;
 
       if (downloadType.findIndex(item => item === 'html') > -1) {
