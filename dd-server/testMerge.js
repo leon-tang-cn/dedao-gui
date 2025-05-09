@@ -64,6 +64,24 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
     const pdfDoc = await loadFile(filePath);
     const outlinesRef = pdfDoc.catalog.get(PDFName.of('Outlines'));
     const outlines = pdfDoc.context.lookup(outlinesRef)
+    console.log(pdfDoc.catalog.dict)
+    console.log(outlines.dict)
+
+    
+    const StructTreeRoot = pdfDoc.catalog.get(PDFName.of('StructTreeRoot'));
+    const StructTreeRoots = pdfDoc.context.lookup(StructTreeRoot)
+    console.log(StructTreeRoots.dict)
+    const ParentTreeRef = StructTreeRoots.dict.get(PDFName.of('K'))
+    const ParentTree = pdfDoc.context.lookup(ParentTreeRef)
+    const childTreeArr = ParentTree.dict.get(PDFName.of('K'))
+    // const childTree = pdfDoc.context.lookup(childTreeRef)
+
+    childTreeArr.array.forEach(item => {
+      const childTree = pdfDoc.context.lookup(item) 
+      console.log(childTree.dict)
+      return false
+    })
+
 
     const firstItemRef = outlines.get(PDFName.of('First'));
     if (!firstItemRef) {
@@ -88,10 +106,7 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
       Count: 0,
     });
 
-    // let currentLevel = 1;
-    // let parentStack = [outlineRoot];
-    // let lastAtEachLevel = {};
-    let prevBookmark = null;
+    let prevRef = null;
 
     items.forEach((item, idx) => {
 
@@ -112,58 +127,20 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
       const bookmark = pdf.context.obj({});
       bookmark.set(PDFName.of('Title'), item.title);
       bookmark.set(PDFName.of('Dest'), destArray);
-      // bookmark.set(PDFName.of('Parent'), outlineRoot.ref);
 
       const ref = pdf.context.register(bookmark);
 
-      if (prevBookmark) {
-        bookmark.set(PDFName.of('Prev'), prevBookmark.ref);
+      if (prevRef) {
+        bookmark.set(PDFName.of('Prev'), prevRef);
         bookmark.set(PDFName.of('Next'), ref);
-        console.log(prevBookmark.dict)
       } else {
         outlineRoot.set(PDFName.of('First'), ref);
       }
 
-      prevBookmark = bookmark;
+      prevRef = ref;
 
       outlineRoot.set(PDFName.of('Last'), ref);
       outlineRoot.set(PDFName.of('Count'), PDFNumber.of(idx + 1));
-
-      // // 设置 Parent
-      // const parent = parentStack[item.level - 1] || parentStack[parentStack.length - 1];
-      // if (parent && parent.ref) {
-      //   bookmark.set(PDFName.of('Parent'), parent.ref);
-      // }
-
-      // // 链接 Prev / Next
-      // if (lastAtEachLevel[item.level]) {
-      //   const prevRef = lastAtEachLevel[item.level].ref;
-      //   if (prevRef) {
-      //     bookmark.set(PDFName.of('Prev'), prevRef);
-      //   }
-      //   bookmark.set(PDFName.of('Next'), ref);
-      // }
-
-      // if (item.level > currentLevel) {
-      //   const lastParent = parentStack[parentStack.length - 1];
-      //   lastParent.set(PDFName.of('First'), ref);
-      // } else if (item.level < currentLevel) {
-      //   for (let i = item.level; i < currentLevel; i++) {
-      //     const last = lastAtEachLevel[i + 1];
-      //     if (last) last.set(PDFName.of('Last'), lastAtEachLevel[i + 1].ref);
-      //   }
-      // }
-
-      // if (!outlineRoot.get(PDFName.of('First'))) {
-      //   outlineRoot.set(PDFName.of('First'), ref);
-      // }
-
-      // outlineRoot.set(PDFName.of('Last'), ref);
-      // outlineRoot.set(PDFName.of('Count'), PDFNumber.of(Number(outlineRoot.get(PDFName.of('Count')) || 0) + 1));
-
-      // lastAtEachLevel[item.level] = bookmark;
-      // parentStack[item.level] = bookmark;
-      // currentLevel = item.level;
     });
 
     const registed = pdf.context.register(outlineRoot)
@@ -173,7 +150,7 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
 
   let outlineItems = [];
   const mergedPdf = await PDFDocument.create();
-  const inputPaths = ["D:\\电子书\\1.pdf", "D:\\电子书\\2.pdf"];
+  const inputPaths = ["D:\\电子书\\1.pdf"]//, "D:\\电子书\\2.pdf"];
   let offset = 0;
 
   for (let i = 0; i < inputPaths.length; i++) {
@@ -183,9 +160,11 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
     const copiedPages = await mergedPdf.copyPages(outlineObj.pdfDoc, Array.from({ length: outlineObj.pdfDoc.getPageCount() }, (_, i) => i));
     copiedPages.forEach(page => mergedPdf.addPage(page));
   }
+  return;
 
   // console.log(outlineItems);
   createOutlineTree(mergedPdf, outlineItems);
+  // console.log(mergedPdf.catalog.dict)
   const mergedPdfBytes = await mergedPdf.save({ useObjectStreams: false });
 
   fs.writeFileSync("D:\\电子书\\new_with_outline.pdf", mergedPdfBytes);
