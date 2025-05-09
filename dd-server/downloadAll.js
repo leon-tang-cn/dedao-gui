@@ -258,7 +258,10 @@ process.stdout.setEncoding('utf8');
     const bookId = bookDetailRes.data.c.id;
     const author = bookDetailRes.data.c.book_author;
     const title = bookDetailRes.data.c.operating_title
-    const category = bookDetailRes.data.c.classify_name;
+    let category = bookDetailRes.data.c.classify_name;
+    if (!category || category === '') {
+      category = '未分类'
+    }
 
     const bookDetailInfoRes = await axios(`https://www.dedao.cn/ebk_web/v1/get_book_info?token=${readToken}`, {
       method: 'GET',
@@ -310,9 +313,6 @@ process.stdout.setEncoding('utf8');
     })
 
     const outputFileName = `${bookId}_${title}_${author}`;
-    if (!category || category === '') {
-      category = '未分类'
-    }
 
     console.log(`generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
