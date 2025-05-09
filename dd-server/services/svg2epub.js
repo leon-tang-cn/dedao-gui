@@ -50,7 +50,7 @@ const EPUB = require('epub-gen');
         @font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
         @font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
         table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
-        img { page-break-inside: avoid; max-width: 100% !important;}
+        img { page-break-inside: avoid !important; max-width: 100% !important;}
         img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
       `
     };
