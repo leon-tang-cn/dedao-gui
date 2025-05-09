@@ -608,7 +608,10 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       if (downloadType.findIndex(item => item === 'pdf') > -1) {
         console.time('PDF Generation Time');
         res.write(`data: ${JSON.stringify({ processStep: '生成PDF文件' })}\n\n`);
-        await Svg2Pdf(outputDir, outputFileName, title, svgContents, toc);
+        const isSuccess = await Svg2Pdf(outputDir, outputFileName, title, svgContents, toc);
+        if (!isSuccess) {
+          res.write(`data: ${JSON.stringify({ error: '生成PDF文件失败' })}\n\n`);
+        }
         console.timeEnd('PDF Generation Time');
       }
 

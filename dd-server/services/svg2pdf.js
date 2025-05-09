@@ -71,7 +71,11 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
           left: '60px'
         }
       });
-      console.log('\x1b[32m%s\x1b[0m', `created PDF part-${index}: ${fileName}`)
+      if (index) {
+        console.log('\x1b[32m%s\x1b[0m', `created PDF part-${index}: ${fileName}`);
+      } else {
+        console.log('\x1b[32m%s\x1b[0m', `created PDF: ${fileName}`);
+      }
       await browser.close();
       return fileName;
     } catch (error) {
@@ -134,7 +138,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
           mergePDFs(mergeFiles, fileName);
         }
       }
-      console.timeEnd(`PDF created in ${title}`)
+      // console.timeEnd(`PDF created in ${title}`)
       const db = await connectDb();
       if (db) {
         await db.run(
@@ -142,6 +146,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         );
         db.close();
       }
+      return true;
     } catch (error) {
       console.error('create PDF failed:', error);
       const time = new Date().getTime();
@@ -155,6 +160,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
           console.log('Failed file info created.');
         }
       });
+      return false;
     }
   }
 

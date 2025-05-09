@@ -106,7 +106,7 @@ process.stdout.setEncoding('utf8');
         console.error(error);
       }
     }
-    console.log(`current progress：page(${i})`);
+    // console.log(`current progress：page(${i})`);
   }
 
   async function checkDownloaded(bookId) {
@@ -278,8 +278,8 @@ process.stdout.setEncoding('utf8');
     const count = 6;
     const offset = 0;
     let svgContents = [];
-    console.log(`start download: ${title} - ${author}`)
-    console.time(`download: ${title} - ${author}`)
+    console.log(`start download: [${category}]${title}_${author}`)
+    // console.time(`download: ${title} - ${author}`)
     const chunks = chunkArray(orders, 5);
     for (const chunk of chunks) {
       const promises = chunk.map(async (order, i) => {
@@ -304,7 +304,7 @@ process.stdout.setEncoding('utf8');
 
       await Promise.all(promises);
     }
-    console.timeEnd(`download: ${title} - ${author}`)
+    // console.timeEnd(`download: ${title} - ${author}`)
     svgContents = svgContents.sort((a, b) => {
       return a.OrderIndex - b.OrderIndex;
     })
@@ -316,7 +316,7 @@ process.stdout.setEncoding('utf8');
 
     console.log(`generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
-    console.time(`PDF created in ${outputFileName}`)
+    // console.time(`PDF created in ${outputFileName}`)
     Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid);
     return { category, outputFileName };
   }
