@@ -7,4 +7,8 @@ dist
 *.db
 log.txt
 output/
+dd-server/assets
+dd-server/*.html
+dd-server/favicon.ico
+dd-server/test*.js
 package-lock.json

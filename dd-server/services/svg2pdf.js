@@ -55,6 +55,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       await page.setContent(buf.join(''), { timeout: 60000000 });
       page.setDefaultTimeout(60000000);
       fs.ensureDirSync(outputDir);
+      page.emulateMediaType('screen');
       await page.pdf({
         path: fileName,
         format: 'A4',
@@ -117,7 +118,9 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
           return;
         }
         buf.push(chapter);
-        buf.push(`<p style="page-break-before: always">`);
+        if (k < svgContents.length - 1) {
+          buf.push(`<p style="page-break-before: always">`);
+        }
       });
 
       if (buf.length <= 500) {
