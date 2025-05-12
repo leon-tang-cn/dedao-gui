@@ -154,9 +154,9 @@ const { PDFDocument, PDFName, PDFArray, PDFString, PDFNumber } = require('pdf-li
   let offset = 0;
 
   for (let i = 0; i < inputPaths.length; i++) {
-    let outlineObj = await processPartFile(inputPaths[i], offset)
-    offset += outlineObj.pdfDoc.getPageCount()
-    outlineItems = outlineItems.concat(outlineObj.outlineItems)
+    // let outlineObj = await processPartFile(inputPaths[i], offset)
+    // offset += outlineObj.pdfDoc.getPageCount()
+    // outlineItems = outlineItems.concat(outlineObj.outlineItems)
     const copiedPages = await mergedPdf.copyPages(outlineObj.pdfDoc, Array.from({ length: outlineObj.pdfDoc.getPageCount() }, (_, i) => i));
     copiedPages.forEach(page => mergedPdf.addPage(page));
   }
