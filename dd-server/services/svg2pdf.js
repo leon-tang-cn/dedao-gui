@@ -75,8 +75,6 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       });
       if (index) {
         console.log('\x1b[32m%s\x1b[0m', `created PDF part-${index}: ${fileName}`);
-      } else {
-        console.log('\x1b[32m%s\x1b[0m', `created PDF: ${fileName}`);
       }
       await browser.close();
       return fileName;
@@ -127,6 +125,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       if (buf.length <= 500) {
         const pdfFileName = await browserGenPdf(buf, outputDir, reTitle);
         await loadAndGenerateOutline(pdfFileName, toc);
+        console.log('\x1b[32m%s\x1b[0m', `created PDF: ${pdfFileName}`);
       } else {
         const chunks = chunkArray(buf, 500);
         console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
@@ -141,6 +140,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
 
         if (mergeFiles.length > 0) {
           await mergePdfFiles(mergeFiles, fileName, toc);
+          console.log('\x1b[32m%s\x1b[0m', `created PDF: ${fileName}`);
         }
       }
       // console.timeEnd(`PDF created in ${title}`)
