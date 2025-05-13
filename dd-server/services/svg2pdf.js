@@ -94,7 +94,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
     return chunks;
   }
 
-  async function Svg2Pdf(outputDir, title, docName, svgContents, toc, enid) {
+  async function Svg2Pdf(outputDir, title, docName, svgContents, toc, enid, saveHis) {
     let reTitle = title.replace(/\//g, '_');
     reTitle = reTitle.replace(/\\/g, '_');
     reTitle = reTitle.replace(/\:/g, '_');
@@ -144,12 +144,14 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         }
       }
       // console.timeEnd(`PDF created in ${title}`)
-      const db = await connectDb();
-      if (db) {
-        await db.run(
-          `update download_his set uploaded = 1 where book_id = '${enid}'`
-        );
-        db.close();
+      if (saveHis) {
+        const db = await connectDb();
+        if (db) {
+          await db.run(
+            `update download_his set uploaded = 1 where book_id = '${enid}'`
+          );
+          db.close();
+        }
       }
       return true;
     } catch (error) {
