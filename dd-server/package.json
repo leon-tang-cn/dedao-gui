@@ -23,6 +23,7 @@
         "html-escaper": "^3.0.3",
         "path": "^0.12.7",
         "pdf-lib": "^1.17.1",
+        "pdfjs-dist": "^2.6.347",
         "puppeteer": "^24.7.2",
         "sqlite": "^5.1.1",
         "sqlite3": "^5.1.7",
