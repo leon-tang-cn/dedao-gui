@@ -2,6 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const { OneByOneHtml } = require('./svg2html');
+const { mergePdfFiles, loadAndGenerateOutline } = require('./createOutline');
 const { PDFDocument } = require('pdf-lib');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
@@ -61,7 +62,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         format: 'A4',
         printBackground: true,
         displayHeaderFooter: true,
-        outline: true,
+        outline: false,
         timeout: 60000000,
         headerTemplate: `<span style="padding: 0 60px; font-size: 14px; color: #333;"></span>`,
         footerTemplate: '<span style="padding: 0 60px; width: 100%; font-size: 10px; color: #333; text-align: right;"><span class="pageNumber"></span>/<span class="totalPages"></span></span>',
@@ -124,7 +125,8 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       });
 
       if (buf.length <= 500) {
-        await browserGenPdf(buf, outputDir, reTitle);
+        const pdfFileName = await browserGenPdf(buf, outputDir, reTitle);
+        await loadAndGenerateOutline(pdfFileName, toc);
       } else {
         const chunks = chunkArray(buf, 500);
         console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
@@ -138,7 +140,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         }
 
         if (mergeFiles.length > 0) {
-          mergePDFs(mergeFiles, fileName);
+          await mergePdfFiles(mergeFiles, fileName, toc);
         }
       }
       // console.timeEnd(`PDF created in ${title}`)
