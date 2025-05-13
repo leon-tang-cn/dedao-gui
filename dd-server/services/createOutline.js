@@ -31,6 +31,9 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
     let nodes = []
     const parentChapterId = getChapterId(parent.href)
     for (let j = 0; j < data.length; j++) {
+      if (!data[j].bookmark) {
+        continue;
+      }
       if (data[j].level !== targetLevel) {
         continue;
       }
@@ -48,6 +51,9 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
     const rootNodes = [];
 
     data.forEach(node => {
+      if (!node.bookmark) {
+        return;
+      }
       if (node.level === 0) {
         rootNodes.push({ ...node, children: {} });
       }
@@ -67,6 +73,7 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
         return pageDatas[j].index;
       }
     }
+    return "notfound";
   }
 
   function createOutline(nodes, parent, mergedPdf) {
@@ -114,7 +121,7 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
   }
 
   async function loadAndGenerateOutline(filePath, toc) {
-      const inputPdf = await PDFDocument.load(fs.readFileSync(filePath));
+    const inputPdf = await PDFDocument.load(fs.readFileSync(filePath));
     await generateOutline(inputPdf, filePath, toc);
   }
 
@@ -127,16 +134,29 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
     for (let i = 1; i <= doc.numPages; i++) {
       const page = await doc.getPage(i);
       const content = await page.getTextContent();
+      let contentStr = content.items.map(item => item.str).join('');
+      contentStr = contentStr.replaceAll(" ", "");
+      contentStr = contentStr.replace(/(\r\n|\n|\r)/g, '');
+      contentStr = contentStr.replace(/\r/g, '');
+      contentStr = contentStr.replace(/^\uFEFF/, '');
+      contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
       pageDatas.push({
         index: i - 1,
-        content: content.items.map(item => item.str).join('')
+        content: contentStr
       });
     }
 
     // 遍历toc，创建书签对象
     for (let i = 0; i < toc.length; i++) {
-      const text = toc[i].text.replaceAll(" ", "");
+      let text = toc[i].text.replaceAll(" ", "");
+      text = text.replace(/(\r\n|\n|\r)/g, '');
+      text = text.replace(/\r/g, '');
+      text = text.replace(/^\uFEFF/, '');
+      text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
       const pageIndex = getPageIndex(pageDatas, text)
+      if (pageIndex == "notfound") {
+        continue;
+      }
       const pageRef = mergedPdf.getPage(pageIndex).ref;
       const destArray = PDFArray.withContext(mergedPdf.context);
       destArray.push(pageRef);
