@@ -1,5 +1,5 @@
 const fs = require('fs-extra');
-const { getDocument } = require('pdfjs-dist');
+const { PdfReader } = require("pdfreader");
 const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf-lib');
 
 (async () => {
@@ -67,13 +67,44 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
     return rootNodes;
   }
 
-  function getPageIndex(pageDatas, text) {
-    for (let j = 0; j < pageDatas.length; j++) {
-      if (pageDatas[j].content.includes(text)) {
-        return pageDatas[j].index;
+  function getPageIndex(pageDatas, keyword, lastPageIndex) {
+    let foundPageIndex = "notfound";
+    Object.entries(pageDatas).some(([page, text]) => {
+      let textRep = text.replaceAll(" ", "");
+      textRep = textRep.replace(/(\r\n|\n|\r)/g, '');
+      textRep = textRep.replace(/\r/g, '');
+      textRep = textRep.replace(/^\uFEFF/, '');
+      textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      if (textRep.includes(keyword)) {
+        if ((Number(page) - 1) < lastPageIndex) {
+          return false; // 继续查找
+        }
+        foundPageIndex = Number(page) - 1;
+        return true; // 终止循环
       }
-    }
-    return "notfound";
+      return false;
+    });
+
+    return foundPageIndex;
+  }
+
+  async function parsePDFAsync(pdfBytes) {
+    const reader = new PdfReader();
+    return new Promise((resolve, reject) => {
+      const pages = {}; // 按页码存储文本
+      let currentPage = 0;
+
+      reader.parseBuffer(pdfBytes, (err, item) => {
+        if (err) reject(err);
+        else if (!item) resolve(pages); // 解析结束时返回结果
+        else {
+          if (item.page) currentPage = item.page; // 更新当前页码
+          if (item.text) {
+            pages[currentPage] = (pages[currentPage] || "") + item.text + "";
+          }
+        }
+      });
+    });
   }
 
   function createOutline(nodes, parent, mergedPdf) {
@@ -118,45 +149,34 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
       copiedPages.forEach(page => mergedPdf.addPage(page));
     }
     await generateOutline(mergedPdf, outputPath, toc);
+    for (let i = 0; i < inputPaths.length; i++) {
+      fs.unlinkSync(inputPaths[i]);
+    }
   }
 
   async function loadAndGenerateOutline(filePath, toc) {
+    console.log(filePath)
     const inputPdf = await PDFDocument.load(fs.readFileSync(filePath));
     await generateOutline(inputPdf, filePath, toc);
   }
 
   async function generateOutline(mergedPdf, outputPath, toc) {
     const pdfBytes = await mergedPdf.save({ useObjectStreams: false })
-    const doc = await getDocument(pdfBytes).promise;
-
-    const pageDatas = [];
-    // 创建页面查找用的map
-    for (let i = 1; i <= doc.numPages; i++) {
-      const page = await doc.getPage(i);
-      const content = await page.getTextContent();
-      let contentStr = content.items.map(item => item.str).join('');
-      contentStr = contentStr.replaceAll(" ", "");
-      contentStr = contentStr.replace(/(\r\n|\n|\r)/g, '');
-      contentStr = contentStr.replace(/\r/g, '');
-      contentStr = contentStr.replace(/^\uFEFF/, '');
-      contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
-      pageDatas.push({
-        index: i - 1,
-        content: contentStr
-      });
-    }
+    const pageDatas = await parsePDFAsync(pdfBytes);
 
     // 遍历toc，创建书签对象
+    let lastPageIndex = 0;
     for (let i = 0; i < toc.length; i++) {
       let text = toc[i].text.replaceAll(" ", "");
       text = text.replace(/(\r\n|\n|\r)/g, '');
       text = text.replace(/\r/g, '');
       text = text.replace(/^\uFEFF/, '');
       text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
-      const pageIndex = getPageIndex(pageDatas, text)
+      const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
       if (pageIndex == "notfound") {
         continue;
       }
+      lastPageIndex = pageIndex;
       const pageRef = mergedPdf.getPage(pageIndex).ref;
       const destArray = PDFArray.withContext(mergedPdf.context);
       destArray.push(pageRef);

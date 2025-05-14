@@ -317,7 +317,7 @@ process.stdout.setEncoding('utf8');
     console.log(`generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
-    Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid);
+    Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
 })();

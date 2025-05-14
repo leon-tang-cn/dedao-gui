@@ -3,7 +3,6 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const { OneByOneHtml } = require('./svg2html');
 const { mergePdfFiles, loadAndGenerateOutline } = require('./createOutline');
-const { PDFDocument } = require('pdf-lib');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
 let dbFilePath = path.join(__dirname, '../ddinfo.db');
@@ -18,26 +17,6 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
     } catch (error) {
       console.error('无法连接到数据库:', error);
       return null;
-    }
-  }
-
-  async function mergePDFs(inputPaths, outputPath) {
-    const mergedPdf = await PDFDocument.create();
-
-    for (const inputPath of inputPaths) {
-      const pdfBytes = fs.readFileSync(inputPath);
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      const pageIndices = Array.from({ length: pdfDoc.getPageCount() }, (_, i) => i);
-      const pages = await mergedPdf.copyPages(pdfDoc, pageIndices);
-      pages.forEach((page) => {
-        mergedPdf.addPage(page);
-      });
-    }
-
-    const mergedPdfBytes = await mergedPdf.save();
-    fs.writeFileSync(outputPath, mergedPdfBytes);
-    for (const inputPath of inputPaths) {
-      fs.unlinkSync(inputPath);
     }
   }
 
