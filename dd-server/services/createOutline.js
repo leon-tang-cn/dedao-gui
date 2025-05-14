@@ -60,7 +60,7 @@ process.stdout.setEncoding('utf8');
       const regexDynamic = new RegExp(keyword)
 
       // 如果当前文本包含关键词
-      if (regexDynamic.test(textRep)) {
+      if (textRep.includes(keyword)) {
         foundPageIndex = pageIndex;
         break; // 立即退出循环
       } else {
