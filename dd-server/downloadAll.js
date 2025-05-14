@@ -5,6 +5,7 @@ const { open } = require('sqlite');
 const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
 const { Svg2Pdf } = require('./services/svg2pdf');
+
 let dbFilePath = path.join(__dirname, './ddinfo.db');
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
 const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135'";
@@ -15,6 +16,7 @@ process.stdout.setEncoding('utf8');
   const AesIv = "6fd89a1b3a7f48fb"
   let result = null;
   let configInfo = null;
+  const baseUrl = "https://www.dedao.cn/";
 
   async function connectDb() {
     try {
@@ -73,7 +75,7 @@ process.stdout.setEncoding('utf8');
       if (bookInfo) {
         db = await connectDb();
         if (!bookInfo.category || bookInfo.category === '') {
-          const bookDetailRes = await axios(`https://www.dedao.cn/pc/ebook2/v1/pc/detail?id=${currentList[j].id_out}`, {
+          const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${currentList[j].id_out}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json, text/plain, */*',
@@ -106,7 +108,7 @@ process.stdout.setEncoding('utf8');
         console.error(error);
       }
     }
-    // console.log(`current progress：page(${i})`);
+    console.log(`current progress：page(${i})`);
   }
 
   async function checkDownloaded(bookId) {
@@ -123,7 +125,7 @@ process.stdout.setEncoding('utf8');
   }
 
   async function getBookList(ps, cp) {
-    const ebookListRes = await axios('https://www.dedao.cn/pc/label/v2/algo/pc/product/list', {
+    const ebookListRes = await axios(`${baseUrl}pc/label/v2/algo/pc/product/list`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json, text/plain, */*',
@@ -165,7 +167,7 @@ process.stdout.setEncoding('utf8');
 
     try {
       let svgContents = []
-      const ebookPages = await axios('https://www.dedao.cn/ebk_web_go/v2/get_pages', {
+      const ebookPages = await axios(`${baseUrl}ebk_web_go/v2/get_pages`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json, text/plain, */*',
@@ -231,7 +233,7 @@ process.stdout.setEncoding('utf8');
   }
 
   async function downloadEbook(enid) {
-    const readTokenRes = await axios(`https://www.dedao.cn/api/pc/ebook2/v1/pc/read/token?id=${enid}`, {
+    const readTokenRes = await axios(`${baseUrl}api/pc/ebook2/v1/pc/read/token?id=${enid}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json, text/plain, */*',
@@ -244,7 +246,7 @@ process.stdout.setEncoding('utf8');
     })
     const readToken = readTokenRes.data.c.token;
 
-    const bookDetailRes = await axios(`https://www.dedao.cn/pc/ebook2/v1/pc/detail?id=${enid}`, {
+    const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${enid}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json, text/plain, */*',
@@ -263,7 +265,7 @@ process.stdout.setEncoding('utf8');
       category = '未分类'
     }
 
-    const bookDetailInfoRes = await axios(`https://www.dedao.cn/ebk_web/v1/get_book_info?token=${readToken}`, {
+    const bookDetailInfoRes = await axios(`${baseUrl}ebk_web/v1/get_book_info?token=${readToken}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json, text/plain, */*',
@@ -281,7 +283,7 @@ process.stdout.setEncoding('utf8');
     const count = 6;
     const offset = 0;
     let svgContents = [];
-    console.log(`start download: [${category}]${title}_${author}`)
+    console.log(`⏳️ start download: [${category}]${title}_${author}`)
     // console.time(`download: ${title} - ${author}`)
     const chunks = chunkArray(orders, 5);
     for (const chunk of chunks) {
@@ -314,7 +316,7 @@ process.stdout.setEncoding('utf8');
 
     const outputFileName = `${bookId}_${title}_${author}`;
 
-    console.log(`generate PDF: [${category}]${outputFileName}`)
+    console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
     Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, true);

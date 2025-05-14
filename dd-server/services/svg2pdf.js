@@ -104,7 +104,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       if (buf.length <= 500) {
         const pdfFileName = await browserGenPdf(buf, outputDir, reTitle);
         await loadAndGenerateOutline(pdfFileName, toc);
-        console.log('\x1b[32m%s\x1b[0m', `created PDF: ${pdfFileName}`);
+        console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
       } else {
         const chunks = chunkArray(buf, 500);
         console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
@@ -119,7 +119,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
 
         if (mergeFiles.length > 0) {
           await mergePdfFiles(mergeFiles, fileName, toc);
-          console.log('\x1b[32m%s\x1b[0m', `created PDF: ${fileName}`);
+          console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${fileName}`);
         }
       }
       // console.timeEnd(`PDF created in ${title}`)
@@ -134,7 +134,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       }
       return true;
     } catch (error) {
-      console.error('create PDF failed:', error);
+      console.error('❌️ create PDF failed:', error);
       const time = new Date().getTime();
       const filePreName = path.join(outputDir, `../${time}.txt`);
       const content = `${title} 生成失败: ${error}`;

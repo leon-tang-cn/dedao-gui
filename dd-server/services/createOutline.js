@@ -1,70 +1,40 @@
 const fs = require('fs-extra');
 const { PdfReader } = require("pdfreader");
 const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf-lib');
+process.stdout.setEncoding('utf8');
 
 (async () => {
+  function buildTree(data, outputPath) {
+    const root = { children: [] };
+    const lastNodes = []; // 记录各层级最新的节点
 
-  function getChapterId(href) {
-    const match = href.split('#');
-    return match ? match[0] : null;
-  }
-
-  function itrateChild(targetLevel, parentLevel, data) {
-    let subMap = {};
-    let currentLevels = [];
-    const parentChapterId = getChapterId(parentLevel.href)
-    for (let j = 0; j < data.length; j++) {
-      if (data[j].level !== targetLevel) {
+    for (const item of data) {
+      if (!item.bookmark) {
         continue;
       }
-      const chapterId = getChapterId(data[j].href);
-      if (!chapterId || !chapterId.startsWith(parentChapterId)) {
-        continue;
-      }
-      currentLevels.push(data[j]);
-      const childMap = itrateChild(targetLevel + 1, data[j], data);
-      subMap[data[j].text] = { ...data[j], children: childMap }
-    }
-    return subMap;
-  }
-  function itrateChild(targetLevel, parent, data) {
-    let nodes = []
-    const parentChapterId = getChapterId(parent.href)
-    for (let j = 0; j < data.length; j++) {
-      if (!data[j].bookmark) {
-        continue;
-      }
-      if (data[j].level !== targetLevel) {
-        continue;
-      }
-      const chapterId = getChapterId(data[j].href);
-      if (!chapterId || !chapterId.startsWith(parentChapterId)) {
-        continue;
-      }
-      const childs = itrateChild(targetLevel + 1, data[j], data);
-      nodes.push({ ...data[j], children: childs })
-    }
-    return nodes;
-  }
+      const currentLevel = item.level;
+      const newNode = {
+        ...item,
+        children: []
+      };
 
-  function buildTocTree(data) {
-    const rootNodes = [];
-
-    data.forEach(node => {
-      if (!node.bookmark) {
-        return;
+      // 找到父节点
+      if (currentLevel === 0) {
+        // 顶层节点，父节点是根节点
+        root.children.push(newNode);
+      } else {
+        // 父节点是上一层的最后一个节点
+        const parent = lastNodes[currentLevel - 1];
+        parent.children.push(newNode);
       }
-      if (node.level === 0) {
-        rootNodes.push({ ...node, children: {} });
-      }
-    });
 
-    for (let i = 0; i < rootNodes.length; i++) {
-      const childs = itrateChild(1, rootNodes[i], data);
-      rootNodes[i].children = childs;
+      // 更新lastNodes数组
+      lastNodes[currentLevel] = newNode;
+      // 截断数组，确保长度正确
+      lastNodes.length = currentLevel + 1;
     }
 
-    return rootNodes;
+    return root.children;
   }
 
   function getPageIndex(pageDatas, keyword, lastPageIndex) {
@@ -155,7 +125,6 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
   }
 
   async function loadAndGenerateOutline(filePath, toc) {
-    console.log(filePath)
     const inputPdf = await PDFDocument.load(fs.readFileSync(filePath));
     await generateOutline(inputPdf, filePath, toc);
   }
@@ -174,6 +143,7 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
       text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
       const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
       if (pageIndex == "notfound") {
+        console.log(`❌️ [${item.text}] of [${outputPath}] not found.`)
         continue;
       }
       lastPageIndex = pageIndex;
@@ -191,7 +161,7 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
     }
 
     // 构建目录树
-    const tocTree = buildTocTree(toc);
+    const tocTree = buildTree(toc, outputPath);
 
     // 创建目录
     const outlineRoot = createOutline(tocTree, null, mergedPdf);
