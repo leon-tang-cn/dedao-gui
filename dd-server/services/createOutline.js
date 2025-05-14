@@ -4,7 +4,15 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
 process.stdout.setEncoding('utf8');
 
 (async () => {
-  function buildTree(data, outputPath) {
+  function convertText(text) {
+    let textRep = text.replaceAll(" ", "");
+    textRep = textRep.replace(/(\r\n|\n|\r)/g, '');
+    textRep = textRep.replace(/\r/g, '');
+    textRep = textRep.replace(/^\uFEFF/, '');
+    textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    return textRep;
+  }
+  function buildTree(data) {
     const root = { children: [] };
     const lastNodes = []; // 记录各层级最新的节点
 
@@ -40,11 +48,7 @@ process.stdout.setEncoding('utf8');
   function getPageIndex(pageDatas, keyword, lastPageIndex) {
     let foundPageIndex = "notfound";
     Object.entries(pageDatas).some(([page, text]) => {
-      let textRep = text.replaceAll(" ", "");
-      textRep = textRep.replace(/(\r\n|\n|\r)/g, '');
-      textRep = textRep.replace(/\r/g, '');
-      textRep = textRep.replace(/^\uFEFF/, '');
-      textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      let textRep = convertText(text);
       if (textRep.includes(keyword)) {
         if ((Number(page) - 1) < lastPageIndex) {
           return false; // 继续查找
@@ -136,11 +140,7 @@ process.stdout.setEncoding('utf8');
     // 遍历toc，创建书签对象
     let lastPageIndex = 0;
     for (let i = 0; i < toc.length; i++) {
-      let text = toc[i].text.replaceAll(" ", "");
-      text = text.replace(/(\r\n|\n|\r)/g, '');
-      text = text.replace(/\r/g, '');
-      text = text.replace(/^\uFEFF/, '');
-      text = text.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      let text = convertText(toc[i].text);
       const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
       if (pageIndex == "notfound") {
         console.log(`❌️ [${item.text}] of [${outputPath}] not found.`)
@@ -161,7 +161,7 @@ process.stdout.setEncoding('utf8');
     }
 
     // 构建目录树
-    const tocTree = buildTree(toc, outputPath);
+    const tocTree = buildTree(toc);
 
     // 创建目录
     const outlineRoot = createOutline(tocTree, null, mergedPdf);
