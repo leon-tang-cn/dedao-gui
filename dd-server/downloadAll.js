@@ -88,9 +88,13 @@ process.stdout.setEncoding('utf8');
           })
           await db.run(`update download_his set category = ? where book_id = ?`, [bookDetailRes.data.c.classify_name, currentList[j].id_out]);
         }
-        await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, currentList[j].id_out]);
-        await db.close();
-        continue;
+        if (!bookInfo.author || bookInfo.author === '') {
+          await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, currentList[j].id_out]);
+          await db.close();
+        }
+        if (bookInfo.uploaded == 1) {
+          continue;
+        }
       }
       try {
         console.log(`current progress：page(${i}), book#${j + 1}`);
@@ -98,12 +102,14 @@ process.stdout.setEncoding('utf8');
           await delay(30000);
         }
         let { category, outputFileName } = await downloadEbook(currentList[j].id_out);
-        db = await connectDb();
-        await db.run(
-          `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
-          [currentList[j].id_out, outputFileName, currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, category]
-        );
-        await db.close();
+        if (!bookInfo) {
+          db = await connectDb();
+          await db.run(
+            `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
+            [currentList[j].id_out, outputFileName, currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, category]
+          );
+          await db.close();
+        }
       } catch (error) {
         console.error(error);
       }

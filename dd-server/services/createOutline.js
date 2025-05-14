@@ -51,35 +51,27 @@ process.stdout.setEncoding('utf8');
     const entries = Object.entries(pageDatas);
     for (let i = 0; i < entries.length; i++) {
       const [page, text] = entries[i]; // 解构当前条目
+      const pageIndex = Number(page) - 1;
+      if (pageIndex < lastPageIndex) {
+        continue;
+      }
+
       const textRep = convertText(text);
+      const regexDynamic = new RegExp(keyword)
 
       // 如果当前文本包含关键词
-      if (textRep.includes(keyword)) {
-        const pageIndex = Number(page) - 1;
-
-        // 如果页索引 >= 目标索引，直接终止循环
-        if (pageIndex >= lastPageIndex) {
-          foundPageIndex = pageIndex;
-          break; // 立即退出循环
-        }
-        // 否则继续循环，寻找更大的页数
+      if (regexDynamic.test(textRep)) {
+        foundPageIndex = pageIndex;
+        break; // 立即退出循环
       } else {
         if (i > 0) {
-          const [prevPage, prevText] = entries[i - 1]; // 解构上一个条目
-          const prevTextRep = convertText(prevText);
-          const wholeText = prevTextRep + textRep;
-          let wholeTextRep = convertText(wholeText);
-          wholeTextRep = wholeTextRep.replace(/\s*\d+\/\d+\s*/g, " ");
-
-          if (wholeTextRep.includes(keyword)) {
-            const pageIndex = Number(page) - 1;
-
-            // 如果页索引 >= 目标索引，直接终止循环
-            if (pageIndex >= lastPageIndex) {
-              foundPageIndex = pageIndex;
-              break; // 立即退出循环
-            }
-            // 否则继续循环，寻找更大的页数
+          const [prevPage, prevText] = entries[i - 1]
+          const combinedText = prevText + text;
+          let combinedTextRep = convertText(combinedText);
+          combinedTextRep = combinedTextRep.replace(/\s*\d+\/\d+\s*/g, "");
+          if (regexDynamic.test(combinedTextRep)) {
+            foundPageIndex = pageIndex;
+            break; // 立即退出循环
           }
         }
       }
