@@ -47,17 +47,42 @@ process.stdout.setEncoding('utf8');
 
   function getPageIndex(pageDatas, keyword, lastPageIndex) {
     let foundPageIndex = "notfound";
-    Object.entries(pageDatas).some(([page, text]) => {
-      let textRep = convertText(text);
+
+    const entries = Object.entries(pageDatas);
+    for (let i = 0; i < entries.length; i++) {
+      const [page, text] = entries[i]; // 解构当前条目
+      const textRep = convertText(text);
+
+      // 如果当前文本包含关键词
       if (textRep.includes(keyword)) {
-        if ((Number(page) - 1) < lastPageIndex) {
-          return false; // 继续查找
+        const pageIndex = Number(page) - 1;
+
+        // 如果页索引 >= 目标索引，直接终止循环
+        if (pageIndex >= lastPageIndex) {
+          foundPageIndex = pageIndex;
+          break; // 立即退出循环
         }
-        foundPageIndex = Number(page) - 1;
-        return true; // 终止循环
+        // 否则继续循环，寻找更大的页数
+      } else {
+        if (i > 0) {
+          const [prevPage, prevText] = entries[i - 1]; // 解构上一个条目
+          const prevTextRep = convertText(prevText);
+          const wholeText = prevTextRep + textRep;
+
+          if (wholeText.includes(keyword)) {
+            const pageIndex = Number(page) - 1;
+
+            // 如果页索引 >= 目标索引，直接终止循环
+            if (pageIndex >= lastPageIndex) {
+              foundPageIndex = pageIndex;
+              break; // 立即退出循环
+            }
+            // 否则继续循环，寻找更大的页数
+          }
+        }
       }
-      return false;
-    });
+      // 如果不包含关键词，继续下一轮循环
+    }
 
     return foundPageIndex;
   }
@@ -143,7 +168,7 @@ process.stdout.setEncoding('utf8');
       let text = convertText(toc[i].text);
       const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
       if (pageIndex == "notfound") {
-        console.log(`❌️ [${item.text}] of [${outputPath}] not found.`)
+        console.log(`❌️ [${text}] of [${outputPath}] not found.`)
         continue;
       }
       lastPageIndex = pageIndex;
