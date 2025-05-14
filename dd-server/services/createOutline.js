@@ -68,8 +68,10 @@ process.stdout.setEncoding('utf8');
           const [prevPage, prevText] = entries[i - 1]; // 解构上一个条目
           const prevTextRep = convertText(prevText);
           const wholeText = prevTextRep + textRep;
+          let wholeTextRep = convertText(wholeText);
+          wholeTextRep = wholeTextRep.replace(/\s*\d+\/\d+\s*/g, " ");
 
-          if (wholeText.includes(keyword)) {
+          if (wholeTextRep.includes(keyword)) {
             const pageIndex = Number(page) - 1;
 
             // 如果页索引 >= 目标索引，直接终止循环
