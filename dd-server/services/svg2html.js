@@ -294,7 +294,9 @@ const htmlEscaper = require('html-escaper');
             }
 
             if (w < footNoteImgW) {
-              cont += img;
+              if (eType !== 'pdf') {
+                cont += img;
+              }
             }
 
             if (eType === 'html') {
