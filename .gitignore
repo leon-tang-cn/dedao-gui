@@ -5,6 +5,7 @@ dist
 *.tar.gz
 .DS_Store
 *.db
+.vscode
 log.txt
 output/
 dd-server/assets
