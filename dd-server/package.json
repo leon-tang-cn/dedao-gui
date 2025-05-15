@@ -50,7 +50,7 @@
         },
         "mac": {
             "target": [
-                "pkg"
+                "dmg"
             ],
             "x64ArchFiles": true,
             "category": "public.app-category.productivity",
