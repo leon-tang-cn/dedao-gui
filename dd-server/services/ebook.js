@@ -579,20 +579,6 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
 
         await Promise.all(promises);
       }
-      // for (var i = 0; i < orders.length; i++) {
-      //   const pageSvgContents = await getEbookPages(orders[i].chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
-
-      //   svgContents.push({
-      //     Contents: pageSvgContents,
-      //     ChapterID: orders[i].chapterId,
-      //     PathInEpub: orders[i].PathInEpub,
-      //     OrderIndex: i,
-      //   })
-      //   let currentToc = toc.filter(toc => toc.href.split('#')[0] === orders[i].chapterId)[0];
-      //   if (currentToc && currentToc.text) {
-      //     res.write(`data: ${JSON.stringify({ processKey: currentToc.text })}\n\n`);
-      //   }
-      // }
 
       console.timeEnd('html Generation Time');
       svgContents = svgContents.sort((a, b) => {

@@ -30,8 +30,12 @@ process.stdout.setEncoding('utf8');
     textRep = textRep.replace(/\r/g, '');
     textRep = textRep.replace(/^\uFEFF/, '');
     textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    textRep = textRep.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
+    textRep = textRep.replace(/\(\d+\)/g, '');
+    textRep = textRep.replaceAll("…","...");
     return textRep;
   }
+  
   function buildTree(data) {
     const root = { children: [] };
     const lastNodes = []; // 记录各层级最新的节点
@@ -181,9 +185,9 @@ process.stdout.setEncoding('utf8');
     let missedKeys = [];
     for (let i = 0; i < toc.length; i++) {
       let text = convertText(toc[i].text);
-      const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
+      const pageIndex = getPageIndex(pageDatas, text, lastPageIndex);
       if (pageIndex == "notfound") {
-        console.log(`❌️ ${i}-[${text}] of [${outputPath}] not found.`)
+        console.log(`❌️ ${i}-[${text}] of [${outputPath}] not found.`);
         hasError = true;
         missedKeys.push(text);
         continue;
@@ -214,7 +218,7 @@ process.stdout.setEncoding('utf8');
 
     const mergedPdfBytes = await mergedPdf.save({ useObjectStreams: false });
 
-    fs.writeFileSync(outputPath, mergedPdfBytes)
+    fs.writeFileSync(outputPath, mergedPdfBytes);
     return { hasError, missedKeys };
   }
 

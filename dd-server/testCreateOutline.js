@@ -25,6 +25,9 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
     textRep = textRep.replace(/\r/g, '');
     textRep = textRep.replace(/^\uFEFF/, '');
     textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    textRep = textRep.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
+    textRep = textRep.replace(/\(\d+\)/g, '')
+    textRep = textRep.replaceAll("…","...")
     return textRep;
   }
   function buildTree(data) {
@@ -192,16 +195,16 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
 
   const db = await connectDb();
   const data = await db.get(
-    `select contents from download_data where enid = '/Users/leon/Documents/得到电子书/73857_精品咖啡学（总论篇）_韩怀宗.pdf'`
+    `select * from download_data where enid = '/Users/leon/Documents/得到电子书/73857_精品咖啡学（总论篇）_韩怀宗.pdf'`
   );
   db.close();
-  // await loadAndGenerateOutline("./1.pdf", JSON.parse(data.contents))
-  // return;
+  await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
+  return;
   const pdfBytes = fs.readFileSync("./1.pdf")
   const doc = await getDocument(pdfBytes).promise;
   const keywords = JSON.parse(data.contents)
 
-  const page = await doc.getPage(152);
+  const page = await doc.getPage(10);
   const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
 
   let contentStr = content.items.map(item => {
@@ -212,15 +215,10 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
   contentStr = contentStr.replace(/\r/g, '');
   contentStr = contentStr.replace(/^\uFEFF/, '');
   contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  contentStr = contentStr.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
   contentStr = JSON.stringify(contentStr)
   console.log(contentStr)
-  console.log(JSON.stringify(keywords[0]))
+  console.log(JSON.stringify(keywords[0]).replace(/\(\d+\)/g, ''))
 
-  const str1 = "抚瑶琴白□亭头";
-  console.log(str1.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, ''))
-
-  const encoder = new TextEncoder();
-
-  console.log(encoder.encode("……"))
 
 })();
