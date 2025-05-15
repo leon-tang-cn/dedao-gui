@@ -10,24 +10,24 @@ const htmlEscaper = require('html-escaper');
 
   function GenHeadHtml() {
     return `<!DOCTYPE html>
-<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <style>
-    @font-face { font-family: "FZFangSong-Z02"; src:local("FZFangSong-Z02"), url("https://imgcdn.umiwi.com/ttf/fangzhengfangsong_gbk.ttf"); }
-    @font-face { font-family: "FZKai-Z03"; src:local("FZFangSong-Z02S"), url("https://imgcdn.umiwi.com/ttf/0315911813008928624065681028886857980055.ttf"); }
-    @font-face { font-family: "FZKai-Z03"; src:local("FZKai-Z03"), url("https://imgcdn.umiwi.com/ttf/fangzhengkaiti_gbk.ttf"); }
-    @font-face { font-family: "PingFang SC"; src:local("PingFang SC"); }
-    @font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
-    @font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
-    table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
-    img { page-break-inside: avoid !important; max-width: 100% !important;}
-    img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
-  </style>
-</head>
-<body>`;
+            <html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                <style>
+                  @font-face { font-family: "FZFangSong-Z02"; src:local("FZFangSong-Z02"), url("https://imgcdn.umiwi.com/ttf/fangzhengfangsong_gbk.ttf"); }
+                  @font-face { font-family: "FZKai-Z03"; src:local("FZFangSong-Z02S"), url("https://imgcdn.umiwi.com/ttf/0315911813008928624065681028886857980055.ttf"); }
+                  @font-face { font-family: "FZKai-Z03"; src:local("FZKai-Z03"), url("https://imgcdn.umiwi.com/ttf/fangzhengkaiti_gbk.ttf"); }
+                  @font-face { font-family: "PingFang SC"; src:local("PingFang SC"); }
+                  @font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
+                  @font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
+                  table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
+                  img { page-break-inside: avoid !important; max-width: 100% !important;}
+                  img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
+                </style>
+              </head>
+              <body>`;
   }
 
   function parseAttrHref(attr) {
@@ -372,7 +372,7 @@ const htmlEscaper = require('html-escaper');
 
           toc.forEach(({ text, level: l }) => {
             const contWOTagMatch = contWOTag.replace(/&nbsp;/g, '');
-            if (text.replace(/ /g, '').includes(contWOTagMatch)) {
+            if (contWOTagMatch.replace(/ /g, '').includes(text)) {
               matchH = true;
               level = l;
             }

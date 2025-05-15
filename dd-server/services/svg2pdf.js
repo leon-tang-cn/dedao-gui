@@ -35,7 +35,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       await page.setContent(buf.join(''), { timeout: 60000000 });
       page.setDefaultTimeout(60000000);
       fs.ensureDirSync(outputDir);
-      page.emulateMediaType('screen');
+      page.emulateMediaType('print');
       await page.pdf({
         path: fileName,
         format: 'A4',
@@ -100,7 +100,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
           buf.push(`<p style="page-break-before: always">`);
         }
       });
-
+      
       if (buf.length <= 500) {
         const pdfFileName = await browserGenPdf(buf, outputDir, reTitle);
         await loadAndGenerateOutline(pdfFileName, toc);

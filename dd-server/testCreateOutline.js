@@ -1,21 +1,16 @@
 const fs = require('fs-extra');
 const { getDocument } = require('pdfjs-dist');
-const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf-lib');
+const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString, utf16Decode } = require('pdf-lib');
+process.stdout.setEncoding('utf8');
 const path = require('path');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
-let dbFilePath = "";
-if (process.env.USER_DATA_PATH) {
-  dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
-} else {
-  dbFilePath = path.join(__dirname, '../ddinfo.db');
-}
-process.stdout.setEncoding('utf8');
+let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
 
 (async () => {
   async function connectDb() {
     try {
-      return await open({
+      return open({
         filename: dbFilePath,
         driver: sqlite3.Database
       });
@@ -127,34 +122,15 @@ process.stdout.setEncoding('utf8');
       const copiedPages = await mergedPdf.copyPages(inputPdf, Array.from({ length: inputPdf.getPageCount() }, (_, i) => i));
       copiedPages.forEach(page => mergedPdf.addPage(page));
     }
-    const { hasError, missedKeys } = await generateOutline(mergedPdf, outputPath, toc);
-    if (!hasError) {
-      for (let i = 0; i < inputPaths.length; i++) {
-        fs.unlinkSync(inputPaths[i]);
-      }
-    } else {
-      const db = await connectDb();
-      if (!db) {
-        return;
-      }
-      await db.run(`insert into download_data(enid, contents, toc) values(?,?,?)`, [JSON.stringify(inputPaths), JSON.stringify(missedKeys), JSON.stringify(toc)]);
-      await db.close();
+    await generateOutline(mergedPdf, outputPath, toc);
+    for (let i = 0; i < inputPaths.length; i++) {
+      fs.unlinkSync(inputPaths[i]);
     }
   }
 
   async function loadAndGenerateOutline(filePath, toc) {
-    const inputBytes = fs.readFileSync(filePath);
-    const inputPdf = await PDFDocument.load(inputBytes);
-    const { hasError, missedKeys } = await generateOutline(inputPdf, filePath, toc);
-    if (hasError) {
-      fs.writeFileSync(filePath.replace(".pdf", ".bak.pdf"), inputBytes)
-      const db = await connectDb();
-      if (!db) {
-        return;
-      }
-      await db.run(`insert into download_data(enid, contents, toc) values(?,?,?)`, [filePath, JSON.stringify(missedKeys), JSON.stringify(toc)]);
-      await db.close();
-    }
+    const inputPdf = await PDFDocument.load(fs.readFileSync(filePath));
+    await generateOutline(inputPdf, "./2.pdf", toc);
   }
 
   async function generateOutline(mergedPdf, outputPath, toc) {
@@ -177,15 +153,11 @@ process.stdout.setEncoding('utf8');
 
     // 遍历toc，创建书签对象
     let lastPageIndex = 0;
-    let hasError = false;
-    let missedKeys = [];
     for (let i = 0; i < toc.length; i++) {
       let text = convertText(toc[i].text);
       const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
       if (pageIndex == "notfound") {
         console.log(`❌️ ${i}-[${text}] of [${outputPath}] not found.`)
-        hasError = true;
-        missedKeys.push(text);
         continue;
       }
       lastPageIndex = pageIndex;
@@ -215,11 +187,40 @@ process.stdout.setEncoding('utf8');
     const mergedPdfBytes = await mergedPdf.save({ useObjectStreams: false });
 
     fs.writeFileSync(outputPath, mergedPdfBytes)
-    return { hasError, missedKeys };
   }
 
-  module.exports = {
-    mergePdfFiles,
-    loadAndGenerateOutline
-  };
+
+  const db = await connectDb();
+  const data = await db.get(
+    `select contents from download_data where enid = '/Users/leon/Documents/得到电子书/73857_精品咖啡学（总论篇）_韩怀宗.pdf'`
+  );
+  db.close();
+  // await loadAndGenerateOutline("./1.pdf", JSON.parse(data.contents))
+  // return;
+  const pdfBytes = fs.readFileSync("./1.pdf")
+  const doc = await getDocument(pdfBytes).promise;
+  const keywords = JSON.parse(data.contents)
+
+  const page = await doc.getPage(152);
+  const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
+
+  let contentStr = content.items.map(item => {
+    return item.str
+  }).join('');
+  contentStr = contentStr.replaceAll(" ", "");
+  contentStr = contentStr.replace(/(\r\n|\n|\r)/g, '');
+  contentStr = contentStr.replace(/\r/g, '');
+  contentStr = contentStr.replace(/^\uFEFF/, '');
+  contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  contentStr = JSON.stringify(contentStr)
+  console.log(contentStr)
+  console.log(JSON.stringify(keywords[0]))
+
+  const str1 = "抚瑶琴白□亭头";
+  console.log(str1.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, ''))
+
+  const encoder = new TextEncoder();
+
+  console.log(encoder.encode("……"))
+
 })();
