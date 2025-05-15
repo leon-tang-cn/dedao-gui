@@ -78,6 +78,7 @@ process.stdout.setEncoding('utf8');
         return pageDatas[j].index;
       } else {
         if (j > 0) {
+          // 处理目录跨页
           let combinedText = convertText(pageDatas[j - 1] + pageDatas[j]);
           combinedText = combinedText.replace(/\s*\d+\/\d+\s*/g, "");
           if (combinedText.includes(text)) {
