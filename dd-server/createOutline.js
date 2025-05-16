@@ -5,6 +5,7 @@ process.stdout.setEncoding('utf8');
 const path = require('path');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
+const zlib = require('node:zlib');
 let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
 
 (async () => {
@@ -39,6 +40,9 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
       if (!item.bookmark) {
         if (item.level == 0 && (i + 1) < data.length) {
           const replaceItem = data[i + 1];
+          if (!replaceItem.bookmark) {
+            continue;
+          }
           const destArray = replaceItem.bookmark.get(PDFName.of('Dest'))
           const bookmark = mergedPdf.context.obj({});
           bookmark.set(PDFName.of('Title'), PDFHexString.fromText(item.text));
@@ -64,6 +68,9 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
       } else {
         // 父节点是上一层的最后一个节点
         const parent = lastNodes[currentLevel - 1];
+        if (!parent) {
+          continue;
+        }
         parent.children.push(newNode);
       }
 
@@ -211,15 +218,31 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
     `select * from download_data where enid = '/Users/leon/Documents/得到电子书/135027_涌现：AI大模型赋能千行百业_赵永新.pdf'`
   );
   db.close();
-  await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
-  return;
+  // await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
+  // return;
   const pdfBytes = fs.readFileSync("./1.pdf")
   const doc = await getDocument(pdfBytes).promise;
-  const keywords = JSON.parse(data.contents)
+  // const keywords = JSON.parse(data.contents)
 
-  const page = await doc.getPage(7);
-  console.log(page)
-  // const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
+  const page1 = await doc.getPage(7);
+  // console.log(page)
+  const content = await page1.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
+  console.log(content.items.map(item => {
+    return item.str
+  }).join(''))
+
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const page = pdfDoc.getPage(6);
+  console.log(page.node)
+  const image = pdfDoc.context.lookup(page.node.get(PDFName.of('Resources')).get(PDFName.of('XObject')).get(PDFName.of('X40'))).getContents()
+  console.log(image)
+  // const pageBytes = pdfDoc.context.lookup(page.node.get(PDFName.of('Contents'))).getContents();
+  // console.log(pageBytes)
+
+  // zlib.unzip(pageBytes, (err, result) => {
+  //   console.log(result.toString())
+  // })
+
 
   // let contentStr = content.items.map(item => {
   //   return item.str

@@ -20,7 +20,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
     }
   }
 
-  async function browserGenPdf(buf, outputDir, reTitle, index) {
+  async function browserGenPdf(buf, outputDir, reTitle, index, genOutline = false) {
     let browser = null;
     try {
       const filePreName = path.join(outputDir, reTitle);
@@ -41,7 +41,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         format: 'A4',
         printBackground: true,
         displayHeaderFooter: true,
-        outline: false,
+        outline: genOutline,
         timeout: 60000000,
         headerTemplate: `<span style="padding: 0 60px; font-size: 14px; color: #333;"></span>`,
         footerTemplate: '<span style="padding: 0 60px; width: 100%; font-size: 10px; color: #333; text-align: right;"><span class="pageNumber"></span>/<span class="totalPages"></span></span>',
@@ -102,7 +102,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
       });
       
       if (buf.length <= 500) {
-        const pdfFileName = await browserGenPdf(buf, outputDir, reTitle);
+        const pdfFileName = await browserGenPdf(buf, outputDir, reTitle, null, false);
         await loadAndGenerateOutline(pdfFileName, toc);
         console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
       } else {

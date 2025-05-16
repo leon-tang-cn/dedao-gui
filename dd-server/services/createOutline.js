@@ -33,6 +33,7 @@ process.stdout.setEncoding('utf8');
     textRep = textRep.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
     textRep = textRep.replace(/\(\d+\)/g, '');
     textRep = textRep.replaceAll("…","...");
+    textRep = textRep.replace(/[\u3000-\u303F\uFF00-\uFFEF!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/gu, '');
     return textRep;
   }
   function buildTree(data, mergedPdf) {
