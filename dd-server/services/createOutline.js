@@ -72,6 +72,9 @@ process.stdout.setEncoding('utf8');
       } else {
         // 父节点是上一层的最后一个节点
         const parent = lastNodes[currentLevel - 1];
+        if (!parent) {
+          continue;
+        }
         parent.children.push(newNode);
       }
 
