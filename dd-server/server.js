@@ -3,6 +3,7 @@ const { initialTables } = require('./services/db');
 const loginService = require('./services/login');
 const ebookService = require('./services/ebook');
 const configService = require('./services/config');
+const localEbooks = require('./services/localEbooks');
 
 (async () => {
   await initialTables();
@@ -15,6 +16,7 @@ const configService = require('./services/config');
   app.use("/api/login", loginService);
   app.use("/api/ebook", ebookService);
   app.use("/api/config", configService);
+  app.use("/api/localEbooks", localEbooks);
 
   app.listen(port, () => {
     console.log(`Server started on port: ${port}`);

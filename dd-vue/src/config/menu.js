@@ -76,6 +76,16 @@ export function getMenus() {
       }
     },
     {
+      id: 6,
+      name: "localEbooks",
+      path: "/localEbooks",
+      meta: {
+        menuName: "网盘",
+        icon: "MostlyCloudy",
+        show: true
+      }
+    },
+    {
       id: 9,
       name: "config",
       path: "/config",
