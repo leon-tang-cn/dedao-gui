@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const { getDocument } = require('pdfjs-dist');
-const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString, utf16Decode } = require('pdf-lib');
+const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf-lib');
 process.stdout.setEncoding('utf8');
 const path = require('path');
 const { open } = require('sqlite');
@@ -27,16 +27,29 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
     textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
     textRep = textRep.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
     textRep = textRep.replace(/\(\d+\)/g, '')
-    textRep = textRep.replaceAll("…","...")
+    textRep = textRep.replaceAll("…", "...")
     return textRep;
   }
-  function buildTree(data) {
+  function buildTree(data, mergedPdf) {
     const root = { children: [] };
     const lastNodes = []; // 记录各层级最新的节点
 
-    for (const item of data) {
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i];
       if (!item.bookmark) {
-        continue;
+        if (item.level == 0 && (i + 1) < data.length) {
+          const replaceItem = data[i + 1];
+          const destArray = replaceItem.bookmark.get(PDFName.of('Dest'))
+          const bookmark = mergedPdf.context.obj({});
+          bookmark.set(PDFName.of('Title'), PDFHexString.fromText(item.text));
+          bookmark.set(PDFName.of('Dest'), destArray);
+          const ref = mergedPdf.context.register(bookmark);
+
+          item.bookmark = bookmark;
+          item.ref = ref;
+        } else {
+          continue;
+        }
       }
       const currentLevel = item.level;
       const newNode = {
@@ -178,7 +191,7 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
     }
 
     // 构建目录树
-    const tocTree = buildTree(toc);
+    const tocTree = buildTree(toc, mergedPdf);
 
     // 创建目录
     const outlineRoot = createOutline(tocTree, null, mergedPdf);
@@ -195,7 +208,7 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
 
   const db = await connectDb();
   const data = await db.get(
-    `select * from download_data where enid = '/Users/leon/Documents/得到电子书/73857_精品咖啡学（总论篇）_韩怀宗.pdf'`
+    `select * from download_data where enid = '/Users/leon/Documents/得到电子书/135027_涌现：AI大模型赋能千行百业_赵永新.pdf'`
   );
   db.close();
   await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
@@ -204,21 +217,22 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
   const doc = await getDocument(pdfBytes).promise;
   const keywords = JSON.parse(data.contents)
 
-  const page = await doc.getPage(10);
-  const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
+  const page = await doc.getPage(7);
+  console.log(page)
+  // const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
 
-  let contentStr = content.items.map(item => {
-    return item.str
-  }).join('');
-  contentStr = contentStr.replaceAll(" ", "");
-  contentStr = contentStr.replace(/(\r\n|\n|\r)/g, '');
-  contentStr = contentStr.replace(/\r/g, '');
-  contentStr = contentStr.replace(/^\uFEFF/, '');
-  contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
-  contentStr = contentStr.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
-  contentStr = JSON.stringify(contentStr)
-  console.log(contentStr)
-  console.log(JSON.stringify(keywords[0]).replace(/\(\d+\)/g, ''))
+  // let contentStr = content.items.map(item => {
+  //   return item.str
+  // }).join('');
+  // contentStr = contentStr.replaceAll(" ", "");
+  // contentStr = contentStr.replace(/(\r\n|\n|\r)/g, '');
+  // contentStr = contentStr.replace(/\r/g, '');
+  // contentStr = contentStr.replace(/^\uFEFF/, '');
+  // contentStr = contentStr.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  // contentStr = contentStr.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
+  // contentStr = JSON.stringify(contentStr)
+  // console.log(contentStr)
+  // console.log(JSON.stringify(keywords[0]).replace(/\(\d+\)/g, ''))
 
 
 })();

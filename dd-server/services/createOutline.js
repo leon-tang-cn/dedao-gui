@@ -35,14 +35,26 @@ process.stdout.setEncoding('utf8');
     textRep = textRep.replaceAll("…","...");
     return textRep;
   }
-  
-  function buildTree(data) {
+  function buildTree(data, mergedPdf) {
     const root = { children: [] };
     const lastNodes = []; // 记录各层级最新的节点
 
-    for (const item of data) {
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i];
       if (!item.bookmark) {
-        continue;
+        if (item.level == 0 && (i + 1) < data.length) {
+          const replaceItem = data[i + 1];
+          const destArray = replaceItem.bookmark.get(PDFName.of('Dest'))
+          const bookmark = mergedPdf.context.obj({});
+          bookmark.set(PDFName.of('Title'), PDFHexString.fromText(item.text));
+          bookmark.set(PDFName.of('Dest'), destArray);
+          const ref = mergedPdf.context.register(bookmark);
+
+          item.bookmark = bookmark;
+          item.ref = ref;
+        } else {
+          continue;
+        }
       }
       const currentLevel = item.level;
       const newNode = {
@@ -208,7 +220,7 @@ process.stdout.setEncoding('utf8');
     }
 
     // 构建目录树
-    const tocTree = buildTree(toc);
+    const tocTree = buildTree(toc, mergedPdf);
 
     // 创建目录
     const outlineRoot = createOutline(tocTree, null, mergedPdf);
