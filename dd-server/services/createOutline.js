@@ -44,6 +44,9 @@ process.stdout.setEncoding('utf8');
       if (!item.bookmark) {
         if (item.level == 0 && (i + 1) < data.length) {
           const replaceItem = data[i + 1];
+          if (!replaceItem.bookmark) {
+            continue;
+          }
           const destArray = replaceItem.bookmark.get(PDFName.of('Dest'))
           const bookmark = mergedPdf.context.obj({});
           bookmark.set(PDFName.of('Title'), PDFHexString.fromText(item.text));
