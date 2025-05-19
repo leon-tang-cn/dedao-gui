@@ -294,23 +294,38 @@ process.stdout.setEncoding('utf8');
     const chunks = chunkArray(orders, 5);
     for (const chunk of chunks) {
       const promises = chunk.map(async (order, i) => {
-        const orderIndex = orders.indexOf(order)
-        const pageSvgContents = await getEbookPages(
-          order.chapterId,
-          count,
-          index,
-          offset,
-          readToken,
-          result.csrfToken,
-          result.cookies
-        );
+        const orderIndex = orders.indexOf(order);
+        const db = await connectDb();
+        const exists = await db.get(`SELECT count(*) as count FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, order.chapterId]);
+        if (exists.count == 1) {
+          const existData = await db.get(`SELECT * FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, order.chapterId]);
+          svgContents.push({
+            Contents: JSON.parse(existData.contents),
+            ChapterID: existData.chapter_id,
+            PathInEpub: existData.path_in_epub,
+            OrderIndex: existData.order_index,
+          });
+        } else {
+          const pageSvgContents = await getEbookPages(
+            order.chapterId,
+            count,
+            index,
+            offset,
+            readToken,
+            result.csrfToken,
+            result.cookies
+          );
 
-        svgContents.push({
-          Contents: pageSvgContents,
-          ChapterID: order.chapterId,
-          PathInEpub: order.PathInEpub,
-          OrderIndex: orderIndex,
-        });
+          svgContents.push({
+            Contents: pageSvgContents,
+            ChapterID: order.chapterId,
+            PathInEpub: order.PathInEpub,
+            OrderIndex: orderIndex,
+          });
+          await db.run(`INSERT INTO book_info (contents, enid, book_title, chapter_id, path_in_epub, order_index) VALUES(?, ?, ?, ?, ?, ?);`,
+            [JSON.stringify(pageSvgContents), enid, `${category}]${title}`, order.chapterId, order.PathInEpub, orderIndex]);
+        }
+        await db.close();
       });
 
       await Promise.all(promises);

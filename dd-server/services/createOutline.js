@@ -197,7 +197,6 @@ process.stdout.setEncoding('utf8');
     let hasError = false;
     let missedKeys = [];
     for (let i = 0; i < toc.length; i++) {
-      console.log(toc[i].href)
       const pageIndex = getPageIndex(pageDatas, toc[i].href, lastPageIndex);
       if (pageIndex == "notfound") {
         console.log(`❌️ ${i}-[${toc[i].href}]-[${toc[i].text}] of [${outputPath}] not found.`)
