@@ -5,7 +5,13 @@ const { OneByOneHtml } = require('./svg2html');
 const { mergePdfFiles, loadAndGenerateOutline } = require('./createOutline');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
-let dbFilePath = path.join(__dirname, '../ddinfo.db');
+let dbFilePath = "";
+if (process.env.USER_DATA_PATH) {
+  dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
+} else {
+  dbFilePath = path.join(__dirname, '../ddinfo.db');
+}
+process.stdout.setEncoding('utf8');
 
 (async () => {
   async function connectDb() {
@@ -91,6 +97,7 @@ let dbFilePath = path.join(__dirname, '../ddinfo.db');
         const [chapter, coverContent] = OneByOneHtml('pdf', k, svgContent, toc);
         if (k === 0) {
           buf.unshift(coverContent);
+          return;
         }
         if (!chapter || chapter === '') {
           return;

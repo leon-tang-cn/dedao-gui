@@ -6,7 +6,7 @@ const path = require('path');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
 const zlib = require('node:zlib');
-let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
+let dbFilePath = path.join(__dirname, './ddinfo.db');
 
 (async () => {
   async function connectDb() {
@@ -84,10 +84,17 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
   }
 
   function getPageIndex(pageDatas, text, lastPageIndex) {
+    const tocTextArr = text.split("#");
     for (let j = 0; j < pageDatas.length; j++) {
       if (j < lastPageIndex) {
         continue;
       }
+      for (let k = 0; k < tocTextArr.length; k++) {
+        if (pageDatas[j].content.includes(tocTextArr[k])) {
+          return pageDatas[j].index;
+        }
+      }
+      continue;
       if (pageDatas[j].content.includes(text)) {
         return pageDatas[j].index;
       } else {
@@ -177,10 +184,9 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
     // 遍历toc，创建书签对象
     let lastPageIndex = 0;
     for (let i = 0; i < toc.length; i++) {
-      let text = convertText(toc[i].text);
-      const pageIndex = getPageIndex(pageDatas, text, lastPageIndex)
+      const pageIndex = getPageIndex(pageDatas, toc[i].href, lastPageIndex)
       if (pageIndex == "notfound") {
-        console.log(`❌️ ${i}-[${text}] of [${outputPath}] not found.`)
+        console.log(`❌️ ${i}-[${toc[i].href}]-[${toc[i].text}] of [${outputPath}] not found.`)
         continue;
       }
       lastPageIndex = pageIndex;
@@ -215,27 +221,35 @@ let dbFilePath = path.join("/Users/leon/Documents", './ddinfo.db');
 
   const db = await connectDb();
   const data = await db.get(
-    `select * from download_data where enid = '/Users/leon/Documents/得到电子书/135027_涌现：AI大模型赋能千行百业_赵永新.pdf'`
+    `select * from download_data where id = 1`
   );
   db.close();
-  // await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
-  // return;
   const pdfBytes = fs.readFileSync("./1.pdf")
-  const doc = await getDocument(pdfBytes).promise;
+
+  async function testPdflib() {
+
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const page = pdfDoc.getPage(2);
+    console.log(page.node)
+    const image = pdfDoc.context.lookup(page.node.get(PDFName.of('Resources')).get(PDFName.of('XObject')).get(PDFName.of('X40'))).getContents()
+    console.log(image)
+  }
+
+  async function testPdfjs() {
+    const doc = await getDocument(pdfBytes).promise;
+    const page = await doc.getPage(3);
+    // console.log(page)
+    const content = await page.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
+    console.log(content.items.map(item => {
+      return item.str
+    }).join(''))
+  }
+
+  // await testPdfjs();
+  await loadAndGenerateOutline("./1.pdf", JSON.parse(data.toc))
+  return;
   // const keywords = JSON.parse(data.contents)
 
-  const page1 = await doc.getPage(7);
-  // console.log(page)
-  const content = await page1.getTextContent({ disableCombineTextItems: true, normalizeWhitespace: true });
-  console.log(content.items.map(item => {
-    return item.str
-  }).join(''))
-
-  const pdfDoc = await PDFDocument.load(pdfBytes);
-  const page = pdfDoc.getPage(6);
-  console.log(page.node)
-  const image = pdfDoc.context.lookup(page.node.get(PDFName.of('Resources')).get(PDFName.of('XObject')).get(PDFName.of('X40'))).getContents()
-  console.log(image)
   // const pageBytes = pdfDoc.context.lookup(page.node.get(PDFName.of('Contents'))).getContents();
   // console.log(pageBytes)
 

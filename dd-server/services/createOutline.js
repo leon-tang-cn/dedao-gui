@@ -32,7 +32,7 @@ process.stdout.setEncoding('utf8');
     textRep = textRep.replace(/[\u200B-\u200D\uFEFF]/g, '');
     textRep = textRep.replace(/[\u0000-\u001F\u25A0-\u25FF]/g, '');
     textRep = textRep.replace(/\(\d+\)/g, '');
-    textRep = textRep.replaceAll("…","...");
+    textRep = textRep.replaceAll("…", "...");
     textRep = textRep.replace(/[\u3000-\u303F\uFF00-\uFFEF!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/gu, '');
     return textRep;
   }
@@ -93,17 +93,10 @@ process.stdout.setEncoding('utf8');
       if (j < lastPageIndex) {
         continue;
       }
-      if (pageDatas[j].content.includes(text)) {
-        return pageDatas[j].index;
-      } else {
-        if (j > 0) {
-          // 处理目录跨页
-          let combinedText = convertText(pageDatas[j - 1] + pageDatas[j]);
-          combinedText = combinedText.replace(/\s*\d+\/\d+\s*/g, "");
-          if (combinedText.includes(text)) {
-            foundPageIndex = pageDatas[j].index;
-            break; // 立即退出循环
-          }
+      const tocTextArr = text.split("#");
+      for (let k = 0; k < tocTextArr.length; k++) {
+        if (pageDatas[j].content.includes(tocTextArr[k])) {
+          return pageDatas[j].index;
         }
       }
     }
@@ -191,8 +184,8 @@ process.stdout.setEncoding('utf8');
       const page = await doc.getPage(i);
       const content = await page.getTextContent();
       let contentStr = content.items.map(item => item.str).join('');
-      contentStr = convertText(contentStr);
-      contentStr = JSON.stringify(contentStr);
+      // contentStr = convertText(contentStr);
+      // contentStr = JSON.stringify(contentStr);
       pageDatas.push({
         index: i - 1,
         content: contentStr
@@ -204,12 +197,12 @@ process.stdout.setEncoding('utf8');
     let hasError = false;
     let missedKeys = [];
     for (let i = 0; i < toc.length; i++) {
-      let text = convertText(toc[i].text);
-      const pageIndex = getPageIndex(pageDatas, text, lastPageIndex);
+      console.log(toc[i].href)
+      const pageIndex = getPageIndex(pageDatas, toc[i].href, lastPageIndex);
       if (pageIndex == "notfound") {
-        console.log(`❌️ ${i}-[${text}] of [${outputPath}] not found.`);
+        console.log(`❌️ ${i}-[${toc[i].href}]-[${toc[i].text}] of [${outputPath}] not found.`)
         hasError = true;
-        missedKeys.push(text);
+        missedKeys.push(toc[i].href);
         continue;
       }
       lastPageIndex = pageIndex;

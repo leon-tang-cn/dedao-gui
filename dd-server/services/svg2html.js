@@ -398,7 +398,7 @@ const htmlEscaper = require('html-escaper');
             } else if (lineStyle) {
               result += `<span style="${lineStyle}">`;
             }
-            result += cont + `</span>`;
+            result += cont + `<span style='color: #fff;font-size:1px;'>${id}</span></span>`;
           }
 
           if (contWOTag) {
@@ -410,6 +410,16 @@ const htmlEscaper = require('html-escaper');
           }
         }
       });
+      if (keys.length == 1) {
+        const tagArr = svgContent.ChapterID.split('#');
+        let tocId = "";
+        if (tagArr.length > 1) {
+          tocId = tagArr[1];
+        } else {
+          tocId = svgContent.ChapterID;
+        }
+        result += `<span style='color: #fff;font-size:1px;'>${tocId}</span>`
+      }
 
       result += `</div>`;
 
@@ -482,6 +492,7 @@ const htmlEscaper = require('html-escaper');
 
   module.exports = {
     Svg2Html,
-    OneByOneHtml
+    OneByOneHtml,
+    GenLineContentByElement
   };
 })();
