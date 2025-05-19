@@ -94,7 +94,7 @@ process.stdout.setEncoding('utf8');
         continue;
       }
       const tocTextArr = text.split("#");
-      for (let k = 0; k < tocTextArr.length; k++) {
+      for (let k = tocTextArr.length - 1; k >=0; k--) {
         if (pageDatas[j].content.includes(tocTextArr[k])) {
           return pageDatas[j].index;
         }
@@ -154,7 +154,7 @@ process.stdout.setEncoding('utf8');
       if (!db) {
         return;
       }
-      await db.run(`insert into download_data(enid, contents, toc) values(?,?,?)`, [JSON.stringify(inputPaths), JSON.stringify(missedKeys), JSON.stringify(toc)]);
+      await db.run(`insert into download_data(enid, contents) values(?,?)`, [JSON.stringify(inputPaths), JSON.stringify(missedKeys)]);
       await db.close();
     }
   }
@@ -169,7 +169,7 @@ process.stdout.setEncoding('utf8');
       if (!db) {
         return;
       }
-      await db.run(`insert into download_data(enid, contents, toc) values(?,?,?)`, [filePath, JSON.stringify(missedKeys), JSON.stringify(toc)]);
+      await db.run(`insert into download_data(enid, contents) values(?,?)`, [filePath, JSON.stringify(missedKeys)]);
       await db.close();
     }
   }
@@ -184,8 +184,6 @@ process.stdout.setEncoding('utf8');
       const page = await doc.getPage(i);
       const content = await page.getTextContent();
       let contentStr = content.items.map(item => item.str).join('');
-      // contentStr = convertText(contentStr);
-      // contentStr = JSON.stringify(contentStr);
       pageDatas.push({
         index: i - 1,
         content: contentStr

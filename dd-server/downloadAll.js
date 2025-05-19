@@ -4,6 +4,8 @@ const path = require('path');
 const { open } = require('sqlite');
 const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
+const zlib = require('node:zlib');
+const util = require('node:util');
 const { Svg2Pdf } = require('./services/svg2pdf');
 
 let dbFilePath = path.join(__dirname, './ddinfo.db');
@@ -169,8 +171,7 @@ process.stdout.setEncoding('utf8');
     return decrypted
   }
 
-  async function getEbookPages(chapterId, count, index, offset, readToken, csrfToken, cookies) {
-
+  async function getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies) {
     try {
       let svgContents = []
       const ebookPages = await axios(`${baseUrl}ebk_web_go/v2/get_pages`, {
@@ -209,19 +210,65 @@ process.stdout.setEncoding('utf8');
         }
       })
 
-      for (let i = 0; i < ebookPages.data.c.pages.length; i++) {
-        const svContent = decryptAes(ebookPages.data.c.pages[i].svg)
-        svgContents.push(svContent);
+      let pageSvgList = ebookPages.data?.c?.pages || [];
+
+      for (let i = 0; i < pageSvgList.length; i++) {
+        svgContents.push(pageSvgList[i].svg);
       }
+
       if (ebookPages.data.c.is_end) {
         return svgContents;
       } else {
         const newIndex = count;
         const newCount = count + 20;
-        const nextSvgContents = await getEbookPages(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
+        const nextSvgContents = await getEbookPageData(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
         svgContents = svgContents.concat(nextSvgContents)
         return svgContents;
       }
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) {
+        console.log('令牌已过期，请重新登录');
+      }
+      return []
+    }
+  }
+
+  async function decompressString(compressedStr) {
+    const inflate = util.promisify(zlib.inflate);
+    try {
+        const buffer = Buffer.from(compressedStr, 'base64');
+        const decompressed = await inflate(buffer);
+        return decompressed.toString();
+    } catch (err) {
+        console.error('解压失败:', err);
+    }
+}
+
+  async function getEbookPages(enid, bookTitle, chapterId, count, index, offset, readToken, csrfToken, cookies) {
+    try {
+      // const db = await connectDb();
+      let pageSvgList = await getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies);
+      // let saveData = false;
+      // const exists = await db.get(`SELECT count(*) as count FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, chapterId]);
+      // if (exists.count > 0) {
+      //   const dbDatas = await db.all(`SELECT contents FROM book_info WHERE enid =? AND chapter_id =?;`, [enid, chapterId]);
+      //   pageSvgList = dbDatas.map((item) => item.contents);
+      // } else {
+      //   saveData = true;
+      //   pageSvgList = await getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies)
+      // }
+
+      let svgContents = [];
+      for (let i = 0; i < pageSvgList.length; i++) {
+        // if (saveData) {
+        //   await db.run(`INSERT INTO book_info (contents, enid, book_title, chapter_id) VALUES(?, ?, ?, ?);`,
+        //     [pageSvgList[i], enid, bookTitle, chapterId]);
+        // }
+        const svgContent = decryptAes(pageSvgList[i])
+        svgContents.push(svgContent);
+      }
+      // await db.close();
+      return svgContents;
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
@@ -295,37 +342,24 @@ process.stdout.setEncoding('utf8');
     for (const chunk of chunks) {
       const promises = chunk.map(async (order, i) => {
         const orderIndex = orders.indexOf(order);
-        const db = await connectDb();
-        const exists = await db.get(`SELECT count(*) as count FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, order.chapterId]);
-        if (exists.count == 1) {
-          const existData = await db.get(`SELECT * FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, order.chapterId]);
-          svgContents.push({
-            Contents: JSON.parse(existData.contents),
-            ChapterID: existData.chapter_id,
-            PathInEpub: existData.path_in_epub,
-            OrderIndex: existData.order_index,
-          });
-        } else {
-          const pageSvgContents = await getEbookPages(
-            order.chapterId,
-            count,
-            index,
-            offset,
-            readToken,
-            result.csrfToken,
-            result.cookies
-          );
+        const pageSvgContents = await getEbookPages(
+          enid,
+          `${category}]${title}`,
+          order.chapterId,
+          count,
+          index,
+          offset,
+          readToken,
+          result.csrfToken,
+          result.cookies
+        );
 
-          svgContents.push({
-            Contents: pageSvgContents,
-            ChapterID: order.chapterId,
-            PathInEpub: order.PathInEpub,
-            OrderIndex: orderIndex,
-          });
-          await db.run(`INSERT INTO book_info (contents, enid, book_title, chapter_id, path_in_epub, order_index) VALUES(?, ?, ?, ?, ?, ?);`,
-            [JSON.stringify(pageSvgContents), enid, `${category}]${title}`, order.chapterId, order.PathInEpub, orderIndex]);
-        }
-        await db.close();
+        svgContents.push({
+          Contents: pageSvgContents,
+          ChapterID: order.chapterId,
+          PathInEpub: order.PathInEpub,
+          OrderIndex: orderIndex,
+        });
       });
 
       await Promise.all(promises);

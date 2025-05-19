@@ -398,7 +398,11 @@ const htmlEscaper = require('html-escaper');
             } else if (lineStyle) {
               result += `<span style="${lineStyle}">`;
             }
-            result += cont + `<span style='color: #fff;font-size:1px;'>${id}</span></span>`;
+            if (!id.startsWith('TOC.xhtml') && id) {
+              result += cont + `<span style='color: #fff;font-size:1px;'>${id}</span></span>`;
+            } else {
+              result += cont;
+            }
           }
 
           if (contWOTag) {
@@ -418,7 +422,9 @@ const htmlEscaper = require('html-escaper');
         } else {
           tocId = svgContent.ChapterID;
         }
-        result += `<span style='color: #fff;font-size:1px;'>${tocId}</span>`
+        if (!svgContent.ChapterID.startsWith('TOC.xhtml')) {
+          result += `<span style='color: #fff;font-size:1px;'>${tocId}</span>`
+        }
       }
 
       result += `</div>`;
