@@ -214,7 +214,7 @@ const htmlEscaper = require('html-escaper');
     }
 
     svgContent.Contents.forEach(content => {
-      result += `<div id="${svgContent.ChapterID}">`;
+      result += `<div id="${svgContent.ChapterID}"><div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${svgContent.ChapterID}</span></div>`;
       const element = parse(content);
       const lineContent = GenLineContentByElement(svgContent.ChapterID, element);
 
@@ -461,9 +461,16 @@ const htmlEscaper = require('html-escaper');
   }
 
   function Svg2Html(outputDir, title, svgContents, toc) {
+    let reTitle = title.replace(/\//g, '_');
+    reTitle = reTitle.replace(/\\/g, '_');
+    reTitle = reTitle.replace(/\:/g, '_');
+    reTitle = reTitle.replace(/\*/g, '_');
+    reTitle = reTitle.replace(/\?/g, '_');
+    reTitle = reTitle.replace(/\"/g, '_');
+    reTitle = reTitle.replace(/\n/g, '');
     const result = AllInOneHtml(svgContents, toc);
     fs.ensureDirSync(outputDir);
-    const fileName = path.join(outputDir, `${title}.html`);
+    const fileName = path.join(outputDir, `${reTitle}.html`);
     fs.writeFileSync(fileName, result);
     return fileName;
   }
