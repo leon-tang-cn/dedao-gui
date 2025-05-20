@@ -54,6 +54,11 @@ const htmlEscaper = require('html-escaper');
     let lastNewLine = false;
     let lastName = '';
 
+    for (let i = 0; i < element.children.length; i++) {
+      const root = element.children[i];
+      root.children = root.children.sort((a, b) => a.properties.y - b.properties.y)
+    }
+
     element.children.forEach((child, k) => {
       child.children.forEach((children, k) => {
         const ele = {
@@ -393,16 +398,20 @@ const htmlEscaper = require('html-escaper');
           if (cont) {
             if (id && lineStyle) {
               result += `<span id="${id}" style="${lineStyle}">`;
+
+              if (!id.startsWith('TOC.xhtml') && id) {
+                result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${id}</span></div>`;
+              }
             } else if (id) {
               result += `<span id="${id}">`;
+
+              if (!id.startsWith('TOC.xhtml') && id) {
+                result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${id}</span></div>`;
+              }
             } else if (lineStyle) {
               result += `<span style="${lineStyle}">`;
             }
-            if (!id.startsWith('TOC.xhtml') && id) {
-              result += cont + `<span style='color: #fff;font-size:1px;'>${id}</span></span>`;
-            } else {
-              result += cont;
-            }
+            result += cont;
           }
 
           if (contWOTag) {
@@ -423,7 +432,7 @@ const htmlEscaper = require('html-escaper');
           tocId = svgContent.ChapterID;
         }
         if (!svgContent.ChapterID.startsWith('TOC.xhtml')) {
-          result += `<span style='color: #fff;font-size:1px;'>${tocId}</span>`
+          result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${tocId}</span></div>`
         }
       }
 

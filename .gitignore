@@ -8,6 +8,7 @@ dist
 .vscode
 log.txt
 output/
+output_html/
 dd-server/assets
 dd-server/*.html
 dd-server/favicon.ico

@@ -70,7 +70,7 @@ process.stdout.setEncoding('utf8');
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
     for (let j = 0; j < currentList.length; j++) {
-      if (currentList[j].is_vip_book == "3") {
+      if (currentList[j].is_vip_book != "1") {
         console.log(`skip vip book: ${currentList[j].name}`)
         continue;
       }
@@ -116,10 +116,8 @@ process.stdout.setEncoding('utf8');
       } catch (error) {
         console.error(error);
       }
-      break;
     }
     console.log(`current progress：page(${i})`);
-    break;
   }
 
   async function checkDownloaded(bookId) {
@@ -376,8 +374,9 @@ process.stdout.setEncoding('utf8');
 
     console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
+    let outputHtml = `${__dirname}/output_html/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
-    Svg2Html(outputDir, outputFileName, svgContents, toc);
+    Svg2Html(outputHtml, outputFileName, svgContents, toc);
     Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
