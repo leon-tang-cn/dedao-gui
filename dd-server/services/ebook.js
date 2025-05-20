@@ -557,7 +557,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       const offset = 0;
       let svgContents = [];
       console.time('html Generation Time');
-      res.write(`data: ${JSON.stringify({ processStep: '转换图书数据', steps: orders.length })}\n\n`);
+      res.write(`data: ${JSON.stringify({ processStep: '转换图书数据', steps: toc.length })}\n\n`);
 
       const chunks = chunkArray(orders, 5);
       for (const chunk of chunks) {

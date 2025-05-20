@@ -25,7 +25,7 @@ const htmlEscaper = require('html-escaper');
                   table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
                   img { page-break-inside: avoid !important; max-width: 100% !important;}
                   img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
-                  @media print {div span {page-break-inside: avoid;}}
+                  @media print {.toc-index { color: #fff;font-size: 2px;height: 2px;line-height: 2px;}}
                 </style>
               </head>
               <body>`;
@@ -217,7 +217,7 @@ const htmlEscaper = require('html-escaper');
     svgContent.Contents.forEach(content => {
       result += `<div id="${svgContent.ChapterID}">`
       if (eType == 'pdf' || eType == 'html') {
-        result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${svgContent.ChapterID}]</span></div>`;
+        result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span class='toc-index'>[${svgContent.ChapterID}]</span></div>`;
       }
       const element = parse(content);
       const lineContent = GenLineContentByElement(svgContent.ChapterID, element);
@@ -404,13 +404,13 @@ const htmlEscaper = require('html-escaper');
               result += `<span id="${id}" style="${lineStyle}">`;
 
               if (!id.startsWith('TOC.xhtml') && id && (eType == 'pdf' || eType == 'html')) {
-                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${id}]</span></div>`;
+                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span class='toc-index'>[${id}]</span></div>`;
               }
             } else if (id) {
               result += `<span id="${id}">`;
 
               if (!id.startsWith('TOC.xhtml') && id && (eType == 'pdf' || eType == 'html')) {
-                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${id}]</span></div>`;
+                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span class='toc-index'>[${id}]</span></div>`;
               }
             } else if (lineStyle) {
               result += `<span style="${lineStyle}">`;

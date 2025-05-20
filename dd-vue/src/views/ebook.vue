@@ -160,10 +160,10 @@ selectedTypes.value = ['pdf', 'epub']
 const getBookContent = async (index, enid) => {
   if (!ebookList.value[index].dtlCnt) {
     const res = await sendRequest(`/api/ebook/getEbookContent?enid=${enid}`)
-    ebookList.value[index].dtlCnt = `分类：${ res.c?.classify_name || ''}</br>
+    ebookList.value[index].dtlCnt = `分类：${res.c?.classify_name || ''}</br>
     字数：${Math.ceil((res.c?.count || 0) / 1024)}千字</br>
-    豆瓣得分：${ res.c?.douban_score || ''}</br>
-    得到评分：${ res.c?.product_score || ''}`;
+    豆瓣得分：${res.c?.douban_score || ''}</br>
+    得到评分：${res.c?.product_score || ''}`;
   }
 }
 
@@ -253,24 +253,30 @@ const downloadFile = async (index, row, types, isMore) => {
     currentStepText.value = ''
     const eventSource = new EventSource(`${host}/api/ebook/getEbookDetail?enid=${row.enid}&eType=${JSON.stringify(fetchTypes)}`);
 
-    const totalSteps = 3 + fetchTypes.length;
-    const step = 10;
+    const totalSteps = 4 + fetchTypes.length;
+    const step = 5;
     let pageStep = 0;
-
+    let currentProgress = 0;
     eventSource.onmessage = async (event) => {
       const data = JSON.parse(event.data);
       if (data.processStep) {
         progress.value += step;
+        currentProgress += step;
         currentStepText.value = `${data.processStep}`
       }
       if (data.steps && data.steps > 0) {
-        pageStep = Math.floor((100 - (10 * totalSteps)) / data.steps);
+        pageStep = Math.floor(((100 - (5 * totalSteps)) / data.steps) * 1000);
         if (!pageStep) {
           pageStep = 1;
         }
       }
-      if (data.processKey && pageStep > 0) {
-        progress.value += pageStep;
+      if (data.processKey) {
+        currentProgress = (Math.round(currentProgress * 1000) + pageStep) / 1000;
+        if (currentProgress < 90) {
+          progress.value = Math.round(currentProgress);
+        } else {
+          progress.value = 90;
+        }
         currentStepText.value = `${data.processKey}`
       }
       if (data.finalResult) {
