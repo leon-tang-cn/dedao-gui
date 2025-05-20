@@ -104,7 +104,7 @@ process.stdout.setEncoding('utf8');
         }
         buf.push(chapter);
         if (k < svgContents.length - 1) {
-          buf.push(`<p style="page-break-before: avoid !important;">`);
+          buf.push(`<p style="page-break-before: always;">`);
         }
       });
       
