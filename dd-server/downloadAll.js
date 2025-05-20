@@ -6,6 +6,7 @@ const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
 const zlib = require('node:zlib');
 const util = require('node:util');
+const { Svg2Html } = require('./services/svg2html');
 const { Svg2Pdf } = require('./services/svg2pdf');
 
 let dbFilePath = path.join(__dirname, './ddinfo.db');
@@ -115,8 +116,10 @@ process.stdout.setEncoding('utf8');
       } catch (error) {
         console.error(error);
       }
+      break;
     }
     console.log(`current progress：page(${i})`);
+    break;
   }
 
   async function checkDownloaded(bookId) {
@@ -246,7 +249,7 @@ process.stdout.setEncoding('utf8');
 
   async function getEbookPages(enid, bookTitle, chapterId, count, index, offset, readToken, csrfToken, cookies) {
     try {
-      // const db = await connectDb();
+      const db = await connectDb();
       let pageSvgList = await getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies);
       // let saveData = false;
       // const exists = await db.get(`SELECT count(*) as count FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, chapterId]);
@@ -260,14 +263,14 @@ process.stdout.setEncoding('utf8');
 
       let svgContents = [];
       for (let i = 0; i < pageSvgList.length; i++) {
+        const svgContent = decryptAes(pageSvgList[i])
         // if (saveData) {
         //   await db.run(`INSERT INTO book_info (contents, enid, book_title, chapter_id) VALUES(?, ?, ?, ?);`,
-        //     [pageSvgList[i], enid, bookTitle, chapterId]);
+        //     [svgContent, enid, bookTitle, chapterId]);
         // }
-        const svgContent = decryptAes(pageSvgList[i])
         svgContents.push(svgContent);
       }
-      // await db.close();
+      await db.close();
       return svgContents;
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
@@ -374,6 +377,7 @@ process.stdout.setEncoding('utf8');
     console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
+    Svg2Html(outputDir, outputFileName, svgContents, toc);
     Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
