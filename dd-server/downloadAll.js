@@ -172,10 +172,10 @@ process.stdout.setEncoding('utf8');
     return decrypted
   }
 
-  async function getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies) {
+  async function getEbookPages(chapterId, count, index, offset, readToken, csrfToken, cookies) {
     try {
       let svgContents = []
-      const ebookPages = await axios(`${baseUrl}ebk_web_go/v2/get_pages`, {
+      const ebookPages = await axios('https://www.dedao.cn/ebk_web_go/v2/get_pages', {
         method: 'POST',
         headers: {
           'Accept': 'application/json, text/plain, */*',
@@ -211,65 +211,19 @@ process.stdout.setEncoding('utf8');
         }
       })
 
-      let pageSvgList = ebookPages.data?.c?.pages || [];
-
-      for (let i = 0; i < pageSvgList.length; i++) {
-        svgContents.push(pageSvgList[i].svg);
+      for (let i = 0; i < ebookPages.data.c.pages.length; i++) {
+        const svContent = decryptAes(ebookPages.data.c.pages[i].svg)
+        svgContents.push(svContent);
       }
-
       if (ebookPages.data.c.is_end) {
         return svgContents;
       } else {
         const newIndex = count;
         const newCount = count + 20;
-        const nextSvgContents = await getEbookPageData(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
+        const nextSvgContents = await getEbookPages(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
         svgContents = svgContents.concat(nextSvgContents)
         return svgContents;
       }
-    } catch (error) {
-      if (error.status === 401 || error.status === 403) {
-        console.log('令牌已过期，请重新登录');
-      }
-      return []
-    }
-  }
-
-  async function decompressString(compressedStr) {
-    const inflate = util.promisify(zlib.inflate);
-    try {
-        const buffer = Buffer.from(compressedStr, 'base64');
-        const decompressed = await inflate(buffer);
-        return decompressed.toString();
-    } catch (err) {
-        console.error('解压失败:', err);
-    }
-}
-
-  async function getEbookPages(enid, bookTitle, chapterId, count, index, offset, readToken, csrfToken, cookies) {
-    try {
-      const db = await connectDb();
-      let pageSvgList = await getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies);
-      // let saveData = false;
-      // const exists = await db.get(`SELECT count(*) as count FROM book_info WHERE enid = ? AND chapter_id = ?;`, [enid, chapterId]);
-      // if (exists.count > 0) {
-      //   const dbDatas = await db.all(`SELECT contents FROM book_info WHERE enid =? AND chapter_id =?;`, [enid, chapterId]);
-      //   pageSvgList = dbDatas.map((item) => item.contents);
-      // } else {
-      //   saveData = true;
-      //   pageSvgList = await getEbookPageData(chapterId, count, index, offset, readToken, csrfToken, cookies)
-      // }
-
-      let svgContents = [];
-      for (let i = 0; i < pageSvgList.length; i++) {
-        const svgContent = decryptAes(pageSvgList[i])
-        // if (saveData) {
-        //   await db.run(`INSERT INTO book_info (contents, enid, book_title, chapter_id) VALUES(?, ?, ?, ?);`,
-        //     [svgContent, enid, bookTitle, chapterId]);
-        // }
-        svgContents.push(svgContent);
-      }
-      await db.close();
-      return svgContents;
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
@@ -344,8 +298,6 @@ process.stdout.setEncoding('utf8');
       const promises = chunk.map(async (order, i) => {
         const orderIndex = orders.indexOf(order);
         const pageSvgContents = await getEbookPages(
-          enid,
-          `${category}]${title}`,
           order.chapterId,
           count,
           index,
