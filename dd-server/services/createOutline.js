@@ -96,10 +96,14 @@ process.stdout.setEncoding('utf8');
         continue;
       }
       if (tocTextArr.length > 1) {
-        keyword = tocTextArr[1];
+        keyword = `[${tocTextArr[1]}]`;
       } else {
-        keyword = tocTextArr[0];
+        keyword = `[${tocTextArr[0]}]`;
       }
+      if (pageDatas[j].content.includes(keyword)) {
+        return pageDatas[j].index;
+      }
+      keyword = keyword.replaceAll("_", " ");
       if (pageDatas[j].content.includes(keyword)) {
         return pageDatas[j].index;
       }

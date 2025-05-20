@@ -216,7 +216,7 @@ const htmlEscaper = require('html-escaper');
     svgContent.Contents.forEach(content => {
       result += `<div id="${svgContent.ChapterID}">`
       if (eType == 'pdf' || eType == 'html') {
-        result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${svgContent.ChapterID}</span></div>`;
+        result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${svgContent.ChapterID}]</span></div>`;
       }
       const element = parse(content);
       const lineContent = GenLineContentByElement(svgContent.ChapterID, element);
@@ -403,13 +403,13 @@ const htmlEscaper = require('html-escaper');
               result += `<span id="${id}" style="${lineStyle}">`;
 
               if (!id.startsWith('TOC.xhtml') && id && (eType == 'pdf' || eType == 'html')) {
-                result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${id}</span></div>`;
+                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${id}]</span></div>`;
               }
             } else if (id) {
               result += `<span id="${id}">`;
 
               if (!id.startsWith('TOC.xhtml') && id && (eType == 'pdf' || eType == 'html')) {
-                result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${id}</span></div>`;
+                result += `<div style='page-break-inside: avoid !important;height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>[${id}]</span></div>`;
               }
             } else if (lineStyle) {
               result += `<span style="${lineStyle}">`;
@@ -426,18 +426,18 @@ const htmlEscaper = require('html-escaper');
           }
         }
       });
-      if (keys.length == 1) {
-        const tagArr = svgContent.ChapterID.split('#');
-        let tocId = "";
-        if (tagArr.length > 1) {
-          tocId = tagArr[1];
-        } else {
-          tocId = svgContent.ChapterID;
-        }
-        if (!svgContent.ChapterID.startsWith('TOC.xhtml') && (eType == 'pdf' || eType == 'html')) {
-          result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${tocId}</span></div>`
-        }
-      }
+      // if (keys.length == 1) {
+      //   const tagArr = svgContent.ChapterID.split('#');
+      //   let tocId = "";
+      //   if (tagArr.length > 1) {
+      //     tocId = tagArr[1];
+      //   } else {
+      //     tocId = svgContent.ChapterID;
+      //   }
+      //   if (!svgContent.ChapterID.startsWith('TOC.xhtml') && (eType == 'pdf' || eType == 'html')) {
+      //     result += `<div style='height:1px;line-height: 1px;'><span style='color: #fff;font-size:1px;height:1px;line-height: 1px;'>${tocId}</span></div>`
+      //   }
+      // }
 
       result += `</div>`;
 
