@@ -89,16 +89,25 @@ process.stdout.setEncoding('utf8');
   }
 
   function getPageIndex(pageDatas, text, lastPageIndex) {
+    const tocTextArr = text.split("#");
+    let keyword = "";
     for (let j = 0; j < pageDatas.length; j++) {
       if (j < lastPageIndex) {
         continue;
       }
-      const tocTextArr = text.split("#");
-      for (let k = tocTextArr.length - 1; k >=0; k--) {
-        if (pageDatas[j].content.includes(tocTextArr[k])) {
-          return pageDatas[j].index;
-        }
+      if (tocTextArr.length > 1) {
+        keyword = tocTextArr[1];
+      } else {
+        keyword = tocTextArr[0];
       }
+      if (pageDatas[j].content.includes(keyword)) {
+        return pageDatas[j].index;
+      }
+    }
+
+    if (tocTextArr.length > 1) {
+      keyword = tocTextArr[0];
+      return getPageIndex(pageDatas, keyword, lastPageIndex);
     }
     return "notfound";
   }
