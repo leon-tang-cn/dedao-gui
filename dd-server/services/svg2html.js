@@ -25,6 +25,7 @@ const htmlEscaper = require('html-escaper');
                   table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
                   img { page-break-inside: avoid !important; max-width: 100% !important;}
                   img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
+                  @media print {div span {page-break-inside: avoid;}}
                 </style>
               </head>
               <body>`;
