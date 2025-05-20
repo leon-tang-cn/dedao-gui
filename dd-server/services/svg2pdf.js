@@ -89,6 +89,7 @@ process.stdout.setEncoding('utf8');
       svgContents.forEach((svgContent, k) => {
         const [chapter, coverContent] = OneByOneHtml('pdf', k, svgContent, toc);
         if (k === 0) {
+          buf.unshift(`<p style="page-break-before: always;">`);
           buf.unshift(coverContent);
           return;
         }
