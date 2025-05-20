@@ -564,7 +564,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
         const promises = chunk.map(async (order, i) => {
           const orderIndex = orders.indexOf(order)
           const pageSvgContents = await getEbookPages(order.chapterId, count, index, offset, readToken, result.csrfToken, result.cookies)
-  
+
           svgContents.push({
             Contents: pageSvgContents,
             ChapterID: order.chapterId,
@@ -585,16 +585,23 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
         return a.OrderIndex - b.OrderIndex;
       })
       const outputFileName = `${bookId}_${title}_${author}`;
+      let reTitle = outputFileName.replace(/\//g, '_');
+      reTitle = reTitle.replace(/\\/g, '_');
+      reTitle = reTitle.replace(/\:/g, '_');
+      reTitle = reTitle.replace(/\*/g, '_');
+      reTitle = reTitle.replace(/\?/g, '_');
+      reTitle = reTitle.replace(/\"/g, '_');
+      reTitle = reTitle.replace(/\n/g, '');
 
       if (downloadType.findIndex(item => item === 'html') > -1) {
         res.write(`data: ${JSON.stringify({ processStep: '生成HTML文件' })}\n\n`);
-        Svg2Html(outputDir, outputFileName, svgContents, toc);
+        Svg2Html(outputDir, reTitle, svgContents, toc);
       }
 
       if (downloadType.findIndex(item => item === 'pdf') > -1) {
         console.time('PDF Generation Time');
         res.write(`data: ${JSON.stringify({ processStep: '生成PDF文件' })}\n\n`);
-        const isSuccess = await Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, false);
+        const isSuccess = await Svg2Pdf(outputDir, reTitle, title, svgContents, toc, enid, false);
         if (!isSuccess) {
           res.write(`data: ${JSON.stringify({ error: '生成PDF文件失败' })}\n\n`);
         }
@@ -604,7 +611,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       if (downloadType.findIndex(item => item === 'epub') > -1) {
         console.time('EPUB Generation Time');
         res.write(`data: ${JSON.stringify({ processStep: '生成EPUB文件' })}\n\n`);
-        await Svg2Epub(outputDir, outputFileName, title, author, svgContents, { toc: toc });
+        await Svg2Epub(outputDir, reTitle, title, author, svgContents, { toc: toc });
         console.timeEnd('EPUB Generation Time');
       }
 

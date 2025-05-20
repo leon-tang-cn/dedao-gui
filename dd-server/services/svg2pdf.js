@@ -80,15 +80,8 @@ process.stdout.setEncoding('utf8');
   }
 
   async function Svg2Pdf(outputDir, title, docName, svgContents, toc, enid, saveHis) {
-    let reTitle = title.replace(/\//g, '_');
-    reTitle = reTitle.replace(/\\/g, '_');
-    reTitle = reTitle.replace(/\:/g, '_');
-    reTitle = reTitle.replace(/\*/g, '_');
-    reTitle = reTitle.replace(/\?/g, '_');
-    reTitle = reTitle.replace(/\"/g, '_');
-    reTitle = reTitle.replace(/\n/g, '');
     let buf = [];
-    const filePreName = path.join(outputDir, reTitle);
+    const filePreName = path.join(outputDir, title);
     const fileName = `${filePreName}.pdf`;
     try {
       fs.ensureDirSync(outputDir);
@@ -109,7 +102,7 @@ process.stdout.setEncoding('utf8');
       });
       
       if (buf.length <= 500) {
-        const pdfFileName = await browserGenPdf(buf, outputDir, reTitle, null, false);
+        const pdfFileName = await browserGenPdf(buf, outputDir, title, null, false);
         await loadAndGenerateOutline(pdfFileName, toc);
         console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
       } else {
@@ -118,7 +111,7 @@ process.stdout.setEncoding('utf8');
         const mergeFiles = [];
         for (let i = 0; i < chunks.length; i++) {
           const chunk = chunks[i];
-          const pdfFileName = await browserGenPdf(chunk, outputDir, reTitle, i + 1);
+          const pdfFileName = await browserGenPdf(chunk, outputDir, title, i + 1);
           if (pdfFileName) {
             mergeFiles.push(pdfFileName);
           }

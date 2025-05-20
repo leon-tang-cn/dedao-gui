@@ -5,13 +5,6 @@ const EPUB = require('epub-gen');
 
 (async () => {
   async function Svg2Epub(outputDir, title, docName, author, svgContents, opt) {
-    let reTitle = title.replace(/\//g, '_');
-    reTitle = reTitle.replace(/\\/g, '_');
-    reTitle = reTitle.replace(/\:/g, '_');
-    reTitle = reTitle.replace(/\*/g, '_');
-    reTitle = reTitle.replace(/\?/g, '_');
-    reTitle = reTitle.replace(/\"/g, '_');
-    reTitle = reTitle.replace(/\n/g, '');
     await fsExtra.ensureDir(outputDir);
     const fileName = path.join(outputDir, `${title}.epub`);
     const coverDir = path.join(outputDir, 'covers');

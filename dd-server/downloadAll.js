@@ -371,13 +371,20 @@ process.stdout.setEncoding('utf8');
     })
 
     const outputFileName = `${bookId}_${title}_${author}`;
+    let reTitle = outputFileName.replace(/\//g, '_');
+    reTitle = reTitle.replace(/\\/g, '_');
+    reTitle = reTitle.replace(/\:/g, '_');
+    reTitle = reTitle.replace(/\*/g, '_');
+    reTitle = reTitle.replace(/\?/g, '_');
+    reTitle = reTitle.replace(/\"/g, '_');
+    reTitle = reTitle.replace(/\n/g, '');
 
     console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     let outputHtml = `${__dirname}/output_html/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
-    Svg2Html(outputHtml, outputFileName, svgContents, toc);
-    Svg2Pdf(outputDir, outputFileName, title, svgContents, toc, enid, true);
+    Svg2Html(outputHtml, reTitle, svgContents, toc);
+    Svg2Pdf(outputDir, reTitle, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
 })();

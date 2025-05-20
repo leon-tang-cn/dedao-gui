@@ -461,16 +461,9 @@ const htmlEscaper = require('html-escaper');
   }
 
   function Svg2Html(outputDir, title, svgContents, toc) {
-    let reTitle = title.replace(/\//g, '_');
-    reTitle = reTitle.replace(/\\/g, '_');
-    reTitle = reTitle.replace(/\:/g, '_');
-    reTitle = reTitle.replace(/\*/g, '_');
-    reTitle = reTitle.replace(/\?/g, '_');
-    reTitle = reTitle.replace(/\"/g, '_');
-    reTitle = reTitle.replace(/\n/g, '');
     const result = AllInOneHtml(svgContents, toc);
     fs.ensureDirSync(outputDir);
-    const fileName = path.join(outputDir, `${reTitle}.html`);
+    const fileName = path.join(outputDir, `${title}.html`);
     fs.writeFileSync(fileName, result);
     return fileName;
   }
