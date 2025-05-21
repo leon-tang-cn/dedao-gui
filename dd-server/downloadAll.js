@@ -394,7 +394,7 @@ process.stdout.setEncoding('utf8');
     let outputSource = `${__dirname}/source/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
     saveSource(enid, outputSource, reTitle, svgContents, toc, category);
-    Svg2Html(outputHtml, reTitle, svgContents, toc);
+    // Svg2Html(outputHtml, reTitle, svgContents, toc);
     Svg2Pdf(outputDir, reTitle, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
