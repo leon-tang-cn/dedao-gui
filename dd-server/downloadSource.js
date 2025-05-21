@@ -68,7 +68,7 @@ process.stdout.setEncoding('utf8');
     console.time(`current progress：page(${i})`);
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
-    const chunks = chunkArray(currentList, 1);
+    const chunks = chunkArray(currentList, 10);
     let onDownload = false;
     for (let k = 0; k < chunks.length; k++) {
       const chunk = chunks[k];
