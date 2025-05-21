@@ -7,6 +7,7 @@ dist
 *.db
 .vscode
 log.txt
+source/
 output/
 output_html/
 dd-server/assets
