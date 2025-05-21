@@ -53,7 +53,7 @@ process.stdout.setEncoding('utf8');
     await db.close();
   }
 
-  const enid = "xGM6Evn5byxq2PnXBz71AjZaol6R8WJrgRaWOKpGkd4gmMLEJrYNQe9VvD8P4jLk";
+  const enid = "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LZVMN3ROrpdZn19VNzv2o5e6lqjQQ1poxq";
   try {
     await downloadEbook(enid);
   } catch (error) {
@@ -93,7 +93,7 @@ process.stdout.setEncoding('utf8');
             "font_name": "yahei",
             "font_scale": 1,
             "font_size": 16,
-            "height": 200000,
+            "height": 20000,
             "line_height": "2em",
             "margin_bottom": 60,
             "margin_left": 30,
@@ -118,9 +118,9 @@ process.stdout.setEncoding('utf8');
       if (ebookPages.data.c.is_end) {
         return svgContents;
       } else {
-        const newIndex = count;
-        const newCount = count + 20;
-        const nextSvgContents = await getEbookPages(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
+        const newIndex = index + count;
+        // const newCount = count + 2;
+        const nextSvgContents = await getEbookPages(chapterId, count, newIndex, offset, readToken, csrfToken, cookies)
         svgContents = svgContents.concat(nextSvgContents)
         return svgContents;
       }
@@ -128,6 +128,7 @@ process.stdout.setEncoding('utf8');
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
       }
+      console.error(error)
       return []
     }
   }
@@ -188,7 +189,7 @@ process.stdout.setEncoding('utf8');
     const toc = bookDetailInfoRes.data.c.bookInfo.toc;
 
     const index = 0;
-    const count = 6;
+    const count = 2;
     const offset = 0;
     let svgContents = [];
     console.log(`⏳️ start download: [${category}]${title}_${author}`)

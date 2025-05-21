@@ -357,7 +357,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
             "font_name": "yahei",
             "font_scale": 1,
             "font_size": 16,
-            "height": 200000,
+            "height": 20000,
             "line_height": "2em",
             "margin_bottom": 60,
             "margin_left": 30,
@@ -382,9 +382,8 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       if (ebookPages.data.c.is_end) {
         return svgContents;
       } else {
-        const newIndex = count;
-        const newCount = count + 20;
-        const nextSvgContents = await getEbookPages(chapterId, newCount, newIndex, offset, readToken, csrfToken, cookies)
+        const newIndex = index + count;
+        const nextSvgContents = await getEbookPages(chapterId, count, newIndex, offset, readToken, csrfToken, cookies)
         svgContents = svgContents.concat(nextSvgContents)
         return svgContents;
       }
@@ -553,7 +552,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       const toc = bookDetailInfoRes.data.c.bookInfo.toc;
 
       const index = 0;
-      const count = 6;
+      const count = 2;
       const offset = 0;
       let svgContents = [];
       console.time('html Generation Time');
