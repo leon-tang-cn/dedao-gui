@@ -121,7 +121,7 @@ process.stdout.setEncoding('utf8');
 
         if (mergeFiles.length > 0) {
           await mergePdfFiles(mergeFiles, fileName, toc);
-          console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${fileName}`);
+          console.log('\x1b[32m%s\x1b[0m', `✅ merged PDF: ${fileName}`);
         }
       }
       // console.timeEnd(`PDF created in ${title}`)

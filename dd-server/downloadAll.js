@@ -69,7 +69,7 @@ process.stdout.setEncoding('utf8');
   for (let i = 0; i <= steps; i++) {
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
-    const chunks = chunkArray(currentList, 5);
+    const chunks = chunkArray(currentList, 10);
     let onDownload = false;
     for (let k = 0; k < chunks.length; k++) {
       const chunk = chunks[k];
