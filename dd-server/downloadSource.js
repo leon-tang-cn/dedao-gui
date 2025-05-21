@@ -5,6 +5,7 @@ const path = require('path');
 const { open } = require('sqlite');
 const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
+const archiver = require('archiver');
 
 let dbFilePath = path.join(__dirname, './ddinfo.db');
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
@@ -67,7 +68,7 @@ process.stdout.setEncoding('utf8');
     console.time(`current progress：page(${i})`);
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
-    const chunks = chunkArray(currentList, 10);
+    const chunks = chunkArray(currentList, 1);
     let onDownload = false;
     for (let k = 0; k < chunks.length; k++) {
       const chunk = chunks[k];
@@ -97,7 +98,7 @@ process.stdout.setEncoding('utf8');
             await db.run(`update source_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [book.lecturer_name, book.name, book.introduction, book.id_out]);
             await db.close();
           }
-          if (bookInfo.uploaded == 1) {
+          if (bookInfo.uploaded == 0) {
             return;
           }
         }
@@ -395,8 +396,41 @@ process.stdout.setEncoding('utf8');
     }
 
     fs.ensureDirSync(outputDir);
-    await fs.writeFile(`${outputDir}/${reTitle}.json`, JSON.stringify(saveData), 'utf8')
+    const filePath = `${outputDir}/${reTitle}.json`;
+    await fs.writeFile(filePath, JSON.stringify(saveData), 'utf8')
     console.log(`✅ saved source data: [${category}]${reTitle}.json`)
+
+    
+    // 创建输出流
+    const output = fs.createWriteStream(`${outputDir}/${reTitle}.zip`);
+    const archive = archiver('zip', {
+      zlib: { level: 5 } // 最高压缩级别
+    });
+    
+    // 监听事件
+    output.on('close', () => {
+      console.log(`压缩完成: [${outputDir}]${reTitle} `);
+      fs.unlinkSync(filePath);
+    });
+    
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') console.warn('文件不存在警告:', err);
+      else throw err;
+    });
+    
+    archive.on('error', (err) => {
+      throw err;
+    });
+    
+    // 管道连接
+    archive.pipe(output);
+    
+    archive.file(filePath, { name: path.basename(filePath) });
+    
+    // 完成压缩
+    archive.finalize().then(() => {
+    });
+
     return { category, reTitle };
   }
 })();
