@@ -102,12 +102,13 @@ process.stdout.setEncoding('utf8');
         }
       });
       
-      if (buf.length <= 500) {
+      if (buf.length <= 200) {
         const pdfFileName = await browserGenPdf(buf, outputDir, title, null, false);
         await loadAndGenerateOutline(pdfFileName, toc);
         console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
       } else {
-        const chunks = chunkArray(buf, 500);
+        const splitSize = Math.ceil(buf.length / Math.ceil(buf.length / 200));
+        const chunks = chunkArray(buf, splitSize);
         console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
         const mergeFiles = [];
         for (let i = 0; i < chunks.length; i++) {

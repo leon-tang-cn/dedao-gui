@@ -91,10 +91,22 @@ process.stdout.setEncoding('utf8');
   function getPageIndex(pageDatas, text, lastPageIndex) {
     const tocTextArr = text.split("#");
     let keyword = "";
-    for (let j = 0; j < pageDatas.length; j++) {
-      if (j < lastPageIndex) {
-        continue;
+    for (let j = lastPageIndex; j < pageDatas.length; j++) {
+      if (tocTextArr.length > 1) {
+        keyword = `[${tocTextArr[1]}]`;
+      } else {
+        keyword = `[${tocTextArr[0]}]`;
       }
+      if (pageDatas[j].content.includes(keyword)) {
+        return pageDatas[j].index;
+      }
+      keyword = keyword.replaceAll("_", " ");
+      if (pageDatas[j].content.includes(keyword)) {
+        return pageDatas[j].index;
+      }
+    }
+
+    for (let j = 0; j < lastPageIndex; j++) {
       if (tocTextArr.length > 1) {
         keyword = `[${tocTextArr[1]}]`;
       } else {
