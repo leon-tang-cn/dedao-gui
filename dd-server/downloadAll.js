@@ -8,6 +8,7 @@ const zlib = require('node:zlib');
 const util = require('node:util');
 const { Svg2Html } = require('./services/svg2html');
 const { Svg2Pdf } = require('./services/svg2pdf');
+const { saveSource } = require('./services/saveSource');
 
 let dbFilePath = path.join(__dirname, './ddinfo.db');
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
@@ -390,7 +391,9 @@ process.stdout.setEncoding('utf8');
     console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     let outputHtml = `${__dirname}/output_html/${category}`;
+    let outputSource = `${__dirname}/source/${category}`;
     // console.time(`PDF created in ${outputFileName}`)
+    saveSource(enid, outputSource, reTitle, svgContents, toc, category);
     Svg2Html(outputHtml, reTitle, svgContents, toc);
     Svg2Pdf(outputDir, reTitle, title, svgContents, toc, enid, true);
     return { category, outputFileName };
