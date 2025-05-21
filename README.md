@@ -13,7 +13,7 @@ nodejs > 20
 </br>Electron
 </br>
 </br>epub：EPUB-GEN
-</br>pdf：puppeteer
+</br>pdf：puppeteer + pdf-lib + pdfjs-dist
 
 ### 编译
 1.windows
@@ -22,7 +22,6 @@ cd dd-vue
 npm i
 cd ../dd-server
 npm i
-npm run prebuild:win
 npm run dist:win
 ```
 2.mac
@@ -31,8 +30,7 @@ cd dd-vue
 npm i
 cd ../dd-server
 npm i
-sudo npm run prebuild:mac
-sudo npm run dist:mac
+sudo npm run dist:macarm 或 sudo npm run dist:macx64
 ```
 
 ### 部分截图
