@@ -390,7 +390,10 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
+      } else {
+        console.error(error)
       }
+      
       return []
     }
   }
