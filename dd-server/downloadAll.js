@@ -122,7 +122,7 @@ process.stdout.setEncoding('utf8');
           );
           // await db.close();
         } catch (error) {
-          console.error(error);
+          console.error(book.id_out, error.code, error.message);
         }
       });
 
