@@ -101,27 +101,31 @@ process.stdout.setEncoding('utf8');
           buf.push(`<p style="page-break-before: always;">`);
         }
       });
-      
+
       if (buf.length <= 200) {
         const pdfFileName = await browserGenPdf(buf, outputDir, title, null, false);
         await loadAndGenerateOutline(pdfFileName, toc);
         console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
       } else {
         const splitSize = Math.ceil(buf.length / Math.ceil(buf.length / 200));
-        const chunks = chunkArray(buf, splitSize);
-        console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
+        const splitParts = chunkArray(buf, splitSize);
+        console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${splitParts.length} parts`);
         const mergeFileMap = {};
-        const promises = chunks.map(async (chunk, index) => {
-          const pdfFileName = await browserGenPdf(chunk, outputDir, title, index + 1);
-          if (pdfFileName) {
-            mergeFileMap[index] = pdfFileName;
-          }
-        });
+        const chunks = chunkArray(splitParts, 4);
+        for (let i = 0; i < chunks.length; i++) {
+          const subParts = chunks[i];
+          const promises = subParts.map(async (chunk, index) => {
+            const pdfFileName = await browserGenPdf(chunk, outputDir, title, (i * 4) + index + 1);
+            if (pdfFileName) {
+              mergeFileMap[index] = pdfFileName;
+            }
+          });
 
-        await Promise.all(promises);
+          await Promise.all(promises);
+        }
 
         let mergeFiles = [];
-        for (let i = 0; i < chunks.length; i++) {
+        for (let i = 0; i < splitParts.length; i++) {
           mergeFiles.push(mergeFileMap[i]);
         }
         // for (let i = 0; i < chunks.length; i++) {
