@@ -357,7 +357,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
             "font_name": "yahei",
             "font_scale": 1,
             "font_size": 16,
-            "height": 20000,
+            "height": 10000,
             "line_height": "2em",
             "margin_bottom": 60,
             "margin_left": 30,
@@ -391,7 +391,7 @@ const secChUa = "'Google Chrome';v='135', 'Not-A.Brand';v='8', 'Chromium';v='135
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
       } else {
-        console.error(error)
+        console.error(error.code, error.message)
       }
       
       return []

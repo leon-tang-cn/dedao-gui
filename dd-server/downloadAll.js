@@ -56,9 +56,10 @@ process.stdout.setEncoding('utf8');
     configInfo = await db.get(`SELECT * FROM output_config`);
   } catch (error) {
     console.error(error);
-  } finally {
-    await db.close();
   }
+  // finally {
+  //   await db.close();
+  // }
 
   function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -67,113 +68,113 @@ process.stdout.setEncoding('utf8');
   const ebookListRes = await getBookList(1, currentPage);
   total = ebookListRes.c.total;
   const steps = Math.ceil(total / pageSize) - 1;
+  // db = await connectDb();
   for (let i = 0; i <= steps; i++) {
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
-    const chunks = chunkArray(currentList, 10);
-    let onDownload = false;
-    for (let k = 0; k < chunks.length; k++) {
-      const chunk = chunks[k];
-      const promises = chunk.map(async (book, j) => {
-        if (book.is_vip_book != "1") {
-          console.log(`skip vip book: ${book.name}`)
-          return;
-        }
-        const bookInfo = await checkDownloaded(book.id_out);
-        if (bookInfo) {
-          db = await connectDb();
-          if (!bookInfo.category || bookInfo.category === '') {
-            const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${book.id_out}`, {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json, text/plain, */*',
-                "xi-csrf-token": result.csrfToken,
-                'Cookie': result.cookies,
-                "User-Agent": userAgent,
-                "sec-ch-ua": secChUa,
-                "sec-ch-ua-mobile": "?0"
-              }
-            })
-            await db.run(`update download_his set category = ? where book_id = ?`, [bookDetailRes.data.c.classify_name, book.id_out]);
-          }
-          if (!bookInfo.author || bookInfo.author === '') {
-            await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [book.lecturer_name, book.name, book.introduction, book.id_out]);
-            await db.close();
-          }
-          if (bookInfo.uploaded == 1) {
-            return;
-          }
-        }
-        try {
-          console.log(`current progress：page(${i}), chunk${k}, book#${j + 1}`);
-          onDownload = true;
-          let { category, outputFileName } = await downloadEbook(book.id_out);
-          if (!bookInfo) {
-            db = await connectDb();
-            await db.run(
-              `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
-              [book.id_out, outputFileName, book.lecturer_name, book.name, book.introduction, category]
-            );
-            await db.close();
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      });
+    // const chunks = chunkArray(currentList, 5);
+    // let onDownload = false;
+    // for (let k = 0; k < chunks.length; k++) {
+    //   const chunk = chunks[k];
+    //   const promises = chunk.map(async (book, j) => {
+    //     if (book.is_vip_book != "1") {
+    //       console.log(`skip vip book: ${book.name}`)
+    //       return;
+    //     }
+    //     const bookInfo = await checkDownloaded(book.id_out);
+    //     if (bookInfo) {
+    //       if (!bookInfo.category || bookInfo.category === '') {
+    //         const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${book.id_out}`, {
+    //           method: 'GET',
+    //           headers: {
+    //             'Accept': 'application/json, text/plain, */*',
+    //             "xi-csrf-token": result.csrfToken,
+    //             'Cookie': result.cookies,
+    //             "User-Agent": userAgent,
+    //             "sec-ch-ua": secChUa,
+    //             "sec-ch-ua-mobile": "?0"
+    //           }
+    //         })
+    //         await db.run(`update download_his set category = ? where book_id = ?`, [bookDetailRes.data.c.classify_name, book.id_out]);
+    //       }
+    //       if (!bookInfo.author || bookInfo.author === '') {
+    //         await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [book.lecturer_name, book.name, book.introduction, book.id_out]);
+    //         // await db.close();
+    //       }
+    //       if (bookInfo.uploaded == 1) {
+    //         return;
+    //       }
+    //     }
+    //     try {
+    //       console.log(`current progress：page(${i}), chunk${k}, book#${j + 1}`);
+    //       onDownload = true;
+    //       let { category, outputFileName } = await downloadEbook(book.id_out);
+    //       if (!bookInfo) {
+    //         // db = await connectDb();
+    //         await db.run(
+    //           `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
+    //           [book.id_out, outputFileName, book.lecturer_name, book.name, book.introduction, category]
+    //         );
+    //         // await db.close();
+    //       }
+    //     } catch (error) {
+    //       console.error(error);
+    //     }
+    //   });
 
-      await Promise.all(promises);
-    }
-    if (onDownload) {
-      await delay(60000);
-    }
-    // for (let j = 0; j < currentList.length; j++) {
-    //   if (currentList[j].is_vip_book != "1") {
-    //     console.log(`skip vip book: ${currentList[j].name}`)
-    //     continue;
-    //   }
-    //   const bookInfo = await checkDownloaded(currentList[j].id_out);
-    //   if (bookInfo) {
-    //     db = await connectDb();
-    //     if (!bookInfo.category || bookInfo.category === '') {
-    //       const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${currentList[j].id_out}`, {
-    //         method: 'GET',
-    //         headers: {
-    //           'Accept': 'application/json, text/plain, */*',
-    //           "xi-csrf-token": result.csrfToken,
-    //           'Cookie': result.cookies,
-    //           "User-Agent": userAgent,
-    //           "sec-ch-ua": secChUa,
-    //           "sec-ch-ua-mobile": "?0"
-    //         }
-    //       })
-    //       await db.run(`update download_his set category = ? where book_id = ?`, [bookDetailRes.data.c.classify_name, currentList[j].id_out]);
-    //     }
-    //     if (!bookInfo.author || bookInfo.author === '') {
-    //       await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, currentList[j].id_out]);
-    //       await db.close();
-    //     }
-    //     if (bookInfo.uploaded == 1) {
-    //       continue;
-    //     }
-    //   }
-    //   try {
-    //     console.log(`current progress：page(${i}), book#${j + 1}`);
-    //     if (j == 0 && i > 0) {
-    //       await delay(30000);
-    //     }
-    //     let { category, outputFileName } = await downloadEbook(currentList[j].id_out);
-    //     if (!bookInfo) {
-    //       db = await connectDb();
-    //       await db.run(
-    //         `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
-    //         [currentList[j].id_out, outputFileName, currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, category]
-    //       );
-    //       await db.close();
-    //     }
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
+    //   await Promise.all(promises);
     // }
+    // if (onDownload) {
+    //   await delay(60000);
+    // }
+    for (let j = 0; j < currentList.length; j++) {
+      if (currentList[j].is_vip_book != "1") {
+        console.log(`skip vip book: ${currentList[j].name}`)
+        continue;
+      }
+      const bookInfo = await checkDownloaded(currentList[j].id_out);
+      if (bookInfo) {
+        db = await connectDb();
+        if (!bookInfo.category || bookInfo.category === '') {
+          const bookDetailRes = await axios(`${baseUrl}pc/ebook2/v1/pc/detail?id=${currentList[j].id_out}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json, text/plain, */*',
+              "xi-csrf-token": result.csrfToken,
+              'Cookie': result.cookies,
+              "User-Agent": userAgent,
+              "sec-ch-ua": secChUa,
+              "sec-ch-ua-mobile": "?0"
+            }
+          })
+          await db.run(`update download_his set category = ? where book_id = ?`, [bookDetailRes.data.c.classify_name, currentList[j].id_out]);
+        }
+        if (!bookInfo.author || bookInfo.author === '') {
+          await db.run(`update download_his set author = ?, title = ?, introduction= ?  where book_id = ?`, [currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, currentList[j].id_out]);
+          await db.close();
+        }
+        if (bookInfo.uploaded == 1) {
+          continue;
+        }
+      }
+      try {
+        console.log(`current progress：page(${i}), book#${j + 1}`);
+        if (j == 0 && i > 0) {
+          await delay(30000);
+        }
+        let { category, outputFileName } = await downloadEbook(currentList[j].id_out);
+        if (!bookInfo) {
+          db = await connectDb();
+          await db.run(
+            `INSERT INTO download_his (book_id, book_title, author, title, introduction, category) VALUES (?, ?, ?, ?, ?, ?)`,
+            [currentList[j].id_out, outputFileName, currentList[j].lecturer_name, currentList[j].name, currentList[j].introduction, category]
+          );
+          await db.close();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
     console.log(`current progress：page(${i})`);
   }
 
@@ -250,7 +251,7 @@ process.stdout.setEncoding('utf8');
             "font_name": "yahei",
             "font_scale": 1,
             "font_size": 16,
-            "height": 200000,
+            "height": 10000,
             "line_height": "2em",
             "margin_bottom": 60,
             "margin_left": 30,
@@ -284,8 +285,10 @@ process.stdout.setEncoding('utf8');
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         console.log('令牌已过期，请重新登录');
+      } else {
+        console.error(error.code, error.message)
       }
-      return []
+      throw error;
     }
   }
 
@@ -348,7 +351,7 @@ process.stdout.setEncoding('utf8');
     const count = 6;
     const offset = 0;
     let svgContents = [];
-    console.log(`⏳️ start download: [${category}]${title}_${author}`)
+    console.log(`▶️ start download: [${category}]${title}_${author}`)
     // console.time(`download: ${title} - ${author}`)
     const chunks = chunkArray(orders, 5);
     for (const chunk of chunks) {
@@ -388,7 +391,7 @@ process.stdout.setEncoding('utf8');
     reTitle = reTitle.replace(/\"/g, '_');
     reTitle = reTitle.replace(/\n/g, '');
 
-    console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
+    console.log(`🔀 generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
     let outputHtml = `${__dirname}/output_html/${category}`;
     let outputSource = `${__dirname}/source/${category}`;
