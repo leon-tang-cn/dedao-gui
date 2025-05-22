@@ -111,13 +111,21 @@ process.stdout.setEncoding('utf8');
         const chunks = chunkArray(buf, splitSize);
         console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${chunks.length} parts`);
         const mergeFiles = [];
-        for (let i = 0; i < chunks.length; i++) {
-          const chunk = chunks[i];
-          const pdfFileName = await browserGenPdf(chunk, outputDir, title, i + 1);
+        const promises = chunks.map(async (chunk, index) => {
+          const pdfFileName = await browserGenPdf(chunk, outputDir, title, index + 1);
           if (pdfFileName) {
             mergeFiles.push(pdfFileName);
           }
-        }
+        });
+
+        await Promise.all(promises);
+        // for (let i = 0; i < chunks.length; i++) {
+        //   const chunk = chunks[i];
+        //   const pdfFileName = await browserGenPdf(chunk, outputDir, title, i + 1);
+        //   if (pdfFileName) {
+        //     mergeFiles.push(pdfFileName);
+        //   }
+        // }
 
         if (mergeFiles.length > 0) {
           await mergePdfFiles(mergeFiles, fileName, toc);

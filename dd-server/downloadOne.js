@@ -4,10 +4,8 @@ const path = require('path');
 const { open } = require('sqlite');
 const { createDecipheriv } = require('node:crypto');
 const { Buffer } = require('node:buffer');
-const zlib = require('node:zlib');
-const util = require('node:util');
-const { Svg2Html } = require('./services/svg2html');
 const { Svg2Pdf } = require('./services/svg2pdf');
+const { saveSource } = require('./services/saveSource');
 
 let dbFilePath = path.join(__dirname, './ddinfo.db');
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
@@ -32,7 +30,7 @@ process.stdout.setEncoding('utf8');
       return null;
     }
   }
-  
+
   let db = await connectDb();
   try {
     if (!db) {
@@ -53,9 +51,15 @@ process.stdout.setEncoding('utf8');
     await db.close();
   }
 
-  const enid = "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LZVMN3ROrpdZn19VNzv2o5e6lqjQQ1poxq";
+  const enid = "jbPz5VvneQEmdz9Gl2qMDkY4B6x7PWPOZmg0XoJLvryOK1Z8NRajbVgAp5OmY2QX";
   try {
-    await downloadEbook(enid);
+    let { category, outputFileName } = await downloadEbook(enid);
+    db = await connectDb();
+    await db.run(
+      `update download_his set book_title = ?, category = ?, uploaded = ? where book_id = ?`,
+      [outputFileName, category, 0, enid]
+    );
+    await db.close();
   } catch (error) {
     console.error(error);
   }
@@ -93,7 +97,7 @@ process.stdout.setEncoding('utf8');
             "font_name": "yahei",
             "font_scale": 1,
             "font_size": 16,
-            "height": 20000,
+            "height": 10000,
             "line_height": "2em",
             "margin_bottom": 60,
             "margin_left": 30,
@@ -234,9 +238,8 @@ process.stdout.setEncoding('utf8');
 
     console.log(`⏳️ generate PDF: [${category}]${outputFileName}`)
     let outputDir = `${__dirname}/output/${category}`;
-    let outputHtml = `${__dirname}/output_html/${category}`;
-    // console.time(`PDF created in ${outputFileName}`)
-    Svg2Html(outputHtml, reTitle, svgContents, toc);
+    let outputSource = `${__dirname}/source/${category}`;
+    saveSource(enid, outputSource, reTitle, svgContents, toc, category);
     Svg2Pdf(outputDir, reTitle, title, svgContents, toc, enid, true);
     return { category, outputFileName };
   }
