@@ -51,7 +51,17 @@ process.stdout.setEncoding('utf8');
     await db.close();
   }
 
-  const enid = "jbPz5VvneQEmdz9Gl2qMDkY4B6x7PWPOZmg0XoJLvryOK1Z8NRajbVgAp5OmY2QX";
+  let enid = null;
+  if (process.argv.length > 2) {
+    enid = process.argv[2]; 
+  } else {
+    return;
+  }
+
+  if (!enid) {
+    return;
+  }
+  // const enid = "vExPL6aYQPjadpoZxR5r6KDkbNJVO0o6k79w84GeXyLElm92gnMA1zvB7qMKpBGk";
   try {
     let { category, outputFileName } = await downloadEbook(enid);
     db = await connectDb();

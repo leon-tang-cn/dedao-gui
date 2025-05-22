@@ -67,6 +67,7 @@ process.stdout.setEncoding('utf8');
   const steps = Math.ceil(total / pageSize) - 1;
   // db = await connectDb();
   for (let i = 0; i <= steps; i++) {
+    console.time(`current progress：page(${i})`);
     const pageRes = await getBookList(pageSize, i);
     const currentList = pageRes.c?.product_list || [];
     const chunks = chunkArray(currentList, 2);
@@ -178,7 +179,7 @@ process.stdout.setEncoding('utf8');
     //     console.error(error);
     //   }
     // }
-    console.log(`current progress：page(${i})`);
+    console.timeEnd(`current progress：page(${i})`);
   }
 
   async function checkDownloaded(bookId) {
