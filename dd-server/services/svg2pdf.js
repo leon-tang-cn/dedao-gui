@@ -117,7 +117,7 @@ process.stdout.setEncoding('utf8');
           const promises = subParts.map(async (chunk, index) => {
             const pdfFileName = await browserGenPdf(chunk, outputDir, title, (i * 4) + index + 1);
             if (pdfFileName) {
-              mergeFileMap[index] = pdfFileName;
+              mergeFileMap[(i * 4) + index] = pdfFileName;
             }
           });
 
