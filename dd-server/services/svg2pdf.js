@@ -79,6 +79,35 @@ process.stdout.setEncoding('utf8');
     return chunks;
   }
 
+  async function splitGeneratePdf(splitUnit, buf, outputDir, title, fileName, toc) {
+    const splitSize = Math.ceil(buf.length / Math.ceil(buf.length / splitUnit));
+    const splitParts = chunkArray(buf, splitSize);
+    console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${splitParts.length} parts`);
+    const mergeFileMap = {};
+    const chunks = chunkArray(splitParts, 4);
+    for (let i = 0; i < chunks.length; i++) {
+      const subParts = chunks[i];
+      const promises = subParts.map(async (chunk, index) => {
+        const pdfFileName = await browserGenPdf(chunk, outputDir, title, (i * 4) + index + 1);
+        if (pdfFileName && fs.existsSync(pdfFileName)) {
+          mergeFileMap[(i * 4) + index] = pdfFileName;
+        }
+      });
+
+      await Promise.all(promises);
+    }
+
+    let mergeFiles = [];
+    for (let i = 0; i < splitParts.length; i++) {
+      mergeFiles.push(mergeFileMap[i]);
+    }
+
+    if (mergeFiles.length > 0) {
+      await mergePdfFiles(mergeFiles, fileName, toc);
+      console.log('\x1b[32m%s\x1b[0m', `✅ merged PDF: ${fileName}`);
+    }
+  }
+
   async function Svg2Pdf(outputDir, title, docName, svgContents, toc, enid, saveHis) {
     let buf = [];
     const filePreName = path.join(outputDir, title);
@@ -104,42 +133,15 @@ process.stdout.setEncoding('utf8');
 
       if (buf.length <= 200) {
         const pdfFileName = await browserGenPdf(buf, outputDir, title, null, false);
-        await loadAndGenerateOutline(pdfFileName, toc);
-        console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
+        if (pdfFileName && fs.existsSync(pdfFileName)) {
+          await loadAndGenerateOutline(pdfFileName, toc);
+          console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
+        } else {
+          splitGeneratePdf(5, buf, outputDir, title, fileName, toc);
+          return false;
+        }
       } else {
-        const splitSize = Math.ceil(buf.length / Math.ceil(buf.length / 200));
-        const splitParts = chunkArray(buf, splitSize);
-        console.error(`pdf toc length: ${buf.length}, Contents too loog, split to:${splitParts.length} parts`);
-        const mergeFileMap = {};
-        const chunks = chunkArray(splitParts, 4);
-        for (let i = 0; i < chunks.length; i++) {
-          const subParts = chunks[i];
-          const promises = subParts.map(async (chunk, index) => {
-            const pdfFileName = await browserGenPdf(chunk, outputDir, title, (i * 4) + index + 1);
-            if (pdfFileName) {
-              mergeFileMap[(i * 4) + index] = pdfFileName;
-            }
-          });
-
-          await Promise.all(promises);
-        }
-
-        let mergeFiles = [];
-        for (let i = 0; i < splitParts.length; i++) {
-          mergeFiles.push(mergeFileMap[i]);
-        }
-        // for (let i = 0; i < chunks.length; i++) {
-        //   const chunk = chunks[i];
-        //   const pdfFileName = await browserGenPdf(chunk, outputDir, title, i + 1);
-        //   if (pdfFileName) {
-        //     mergeFiles.push(pdfFileName);
-        //   }
-        // }
-
-        if (mergeFiles.length > 0) {
-          await mergePdfFiles(mergeFiles, fileName, toc);
-          console.log('\x1b[32m%s\x1b[0m', `✅ merged PDF: ${fileName}`);
-        }
+        splitGeneratePdf(200, buf, outputDir, title, fileName, toc);
       }
       // console.timeEnd(`PDF created in ${title}`)
       if (saveHis) {
