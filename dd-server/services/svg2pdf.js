@@ -97,6 +97,10 @@ process.stdout.setEncoding('utf8');
       await Promise.all(promises);
     }
 
+    if (Object.keys(mergeFileMap).length != splitParts.length) {
+      return await splitGeneratePdf(5, buf, outputDir, title, fileName, toc);
+    }
+
     let mergeFiles = [];
     for (let i = 0; i < splitParts.length; i++) {
       mergeFiles.push(mergeFileMap[i]);
@@ -106,6 +110,7 @@ process.stdout.setEncoding('utf8');
       await mergePdfFiles(mergeFiles, fileName, toc);
       console.log('\x1b[32m%s\x1b[0m', `✅ merged PDF: ${fileName}`);
     }
+    return true;
   }
 
   async function Svg2Pdf(outputDir, title, docName, svgContents, toc, enid, saveHis) {
@@ -131,17 +136,18 @@ process.stdout.setEncoding('utf8');
         }
       });
 
+      let result = false;
       if (buf.length <= 200) {
         const pdfFileName = await browserGenPdf(buf, outputDir, title, null, false);
         if (pdfFileName && fs.existsSync(pdfFileName)) {
           await loadAndGenerateOutline(pdfFileName, toc);
           console.log('\x1b[32m%s\x1b[0m', `✅ created PDF: ${pdfFileName}`);
+          result = true;
         } else {
-          splitGeneratePdf(5, buf, outputDir, title, fileName, toc);
-          return false;
+          result = await splitGeneratePdf(5, buf, outputDir, title, fileName, toc);
         }
       } else {
-        splitGeneratePdf(200, buf, outputDir, title, fileName, toc);
+        result = await splitGeneratePdf(200, buf, outputDir, title, fileName, toc);
       }
       // console.timeEnd(`PDF created in ${title}`)
       if (saveHis) {
@@ -153,7 +159,7 @@ process.stdout.setEncoding('utf8');
           db.close();
         }
       }
-      return true;
+      return result;
     } catch (error) {
       console.error('❌️ create PDF failed:', error);
       const time = new Date().getTime();
