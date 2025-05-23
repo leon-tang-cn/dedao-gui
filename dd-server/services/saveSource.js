@@ -25,7 +25,7 @@ const archiver = require('archiver');
 
       // 监听事件
       output.on('close', () => {
-        console.log(`📄 压缩源数据完成: [${outputDir}]${reTitle}.zip `);
+        console.log(`📄 压缩源数据完成: ${outputDir}/${reTitle}.zip `);
         fs.unlinkSync(filePath);
       });
 

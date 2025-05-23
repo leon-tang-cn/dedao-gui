@@ -4,6 +4,7 @@ const { PDFDocument, PDFName, PDFArray, PDFNumber, PDFHexString } = require('pdf
 const path = require('path');
 const { open } = require('sqlite');
 const sqlite3 = require('sqlite3');
+const archiver = require('archiver');
 let dbFilePath = "";
 if (process.env.USER_DATA_PATH) {
   dbFilePath = path.join(process.env.USER_DATA_PATH, 'ddinfo.db');
@@ -254,6 +255,38 @@ process.stdout.setEncoding('utf8');
     const mergedPdfBytes = await mergedPdf.save({ useObjectStreams: false });
 
     fs.writeFileSync(outputPath, mergedPdfBytes);
+
+    // let zipPath = outputPath.replace(".pdf", ".zip");
+
+    // const output = fs.createWriteStream(zipPath);
+    // const archive = archiver('zip', {
+    //   zlib: { level: 5 } // 最高压缩级别
+    // });
+
+    // // 监听事件
+    // output.on('close', () => {
+    //   console.log(`📄 压缩PDF: ${zipPath} `);
+    //   fs.unlinkSync(outputPath);
+    // });
+
+    // archive.on('warning', (err) => {
+    //   if (err.code === 'ENOENT') console.warn('文件不存在警告:', err);
+    //   else throw err;
+    // });
+
+    // archive.on('error', (err) => {
+    //   throw err;
+    // });
+
+    // // 管道连接
+    // archive.pipe(output);
+
+    // archive.file(outputPath, { name: path.basename(outputPath) });
+
+    // // 完成压缩
+    // archive.finalize().then(() => {
+    // });
+
     return { hasError, missedKeys };
   }
 
